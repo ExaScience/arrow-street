@@ -1,0 +1,125 @@
+/// Copyright (c) 2012, 2013 by Pascal Costanza, Intel Corporation.
+
+#ifndef AOSOA_TABLE_ARRAY
+#define AOSOA_TABLE_ARRAY
+
+#include <cstddef>
+
+#include <array>
+#include <stdexcept>
+#include <utility>
+
+#include "soa/table.hpp"
+#include "aosoa/table_iterator.hpp"
+
+namespace aosoa  {
+
+  template<class C, size_t B, size_t N>
+  class table_array {
+  public:
+	static const auto table_size = B;
+
+	typedef C value_type;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef value_type& reference;
+	typedef const reference const_reference;
+	typedef value_type* pointer;
+	typedef const pointer const_pointer;
+	typedef table_iterator<value_type,table_size> iterator;
+	typedef const iterator const_iterator;
+	typedef std::reverse_iterator<iterator> reverse_iterator;
+	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+
+	typedef soa::table<value_type,table_size> table_type;
+	typedef table_type& table_reference;
+	typedef const table_reference const_table_reference;
+	typedef table_type* table_pointer;
+	typedef const table_pointer const_table_pointer;
+
+  private:
+	table_type tables[N/table_size+(N%table_size?1:0)];
+
+  public:
+	value_type at (size_type pos) {
+	  if (pos >= N) throw std::out_of_range("");
+	  return tables[pos/table_size][pos%table_size];
+	}
+
+	const value_type at (size_type pos) const {
+	  if (pos >= N) throw std::out_of_range("");
+	  return tables[pos/table_size][pos%table_size];
+	}
+
+	value_type operator[] (size_type pos) {
+	  return tables[pos/table_size][pos%table_size];
+	}
+
+	const value_type operator[] (size_type pos) const {
+	  return tables[pos/table_size][pos%table_size];
+	}
+
+	value_type front () { return tables[0][0]; }
+	const value_type front () const { return tables[0][0]; }
+
+	value_type back () { return (*this)[N-1]; }
+	const value_type back () const { return (*this)[N-1]; }
+
+	table_pointer data () { return tables; }
+	const_table_pointer data () const { return tables; }
+
+	iterator begin() { return iterator(&tables[0],0); }
+	const_iterator begin() const { return iterator(&tables[0], 0); }
+	const_iterator cbegin() const { return iterator(&tables[0], 0); }
+
+	iterator end() { return iterator(&tables[(N-1)/table_size], (N-1)%table_size+1); }
+	const_iterator end() const { return iterator(&tables[(N-1)/table_size], (N-1)%table_size+1); }
+	const_iterator cend() const { return iterator(&tables[(N-1)/table_size], (N-1)%table_size+1); }
+
+	reverse_iterator rbegin() { return reverse_iterator(end()); }
+	const_reverse_iterator rbegin() const { return reverse_iterator(end()); }
+	const_reverse_iterator crbegin() const { return reverse_iterator(end()); }
+
+	reverse_iterator rend() { return reverse_iterator(begin()); }
+	const_reverse_iterator rend() const { return reverse_iterator(begin()); }
+	const_reverse_iterator crend() const { return reverse_iterator(begin()); }
+
+	bool empty () const { return N==0; }
+	size_type size () const { return N; }
+	size_type max_size () const { return std::array<soa::table<value_type,1>,1>::max_size(); }
+
+	void fill (const_reference value) {
+	  for (size_type i=0; i<N/table_size; ++i) {
+		auto& table = tables[i];
+		for (size_type j=0; j<table_size; ++j) table[j] = value;
+	  }
+	  if (N%table_size) {
+		auto& table = tables[N/table_size];
+		for (size_type j=0; j<N%table_size; ++j) table[j] = value;
+	  }
+	}
+
+	void swap (table_array& that) { std::swap(tables, that.tables); }
+  };
+}
+
+namespace soa {
+  template<typename T, size_t B, size_t N> class table_traits<aosoa::table_array<T,B,N>> {
+  private:
+	typedef aosoa::table_array<T,B,N> table_array_type;
+  public:
+	static const auto tabled = true;
+	static const auto table_size = B;
+
+	typedef typename table_array_type::value_type value_type;
+	typedef typename table_array_type::table_type table_type;
+	typedef typename table_array_type::table_reference table_reference;
+	typedef typename table_array_type::const_table_reference const_table_reference;
+	typedef typename table_array_type::table_pointer table_pointer;
+	typedef typename table_array_type::const_table_pointer const_table_pointer;
+
+	static inline table_reference get_table(table_pointer tables, size_t i) {return tables[i];}
+  };
+}
+
+#endif
