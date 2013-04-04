@@ -13,47 +13,57 @@
 
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_for.h"
+#include "tbb/task_group.h"
 
 namespace aosoa {
 
-#define def_parallel_for_each(name, ...)							\
-  template<class C, typename F>										\
-  inline void name(C& container, const F& f) {						\
-	const auto size = container.size();								\
-	auto data = container.data();									\
-																	\
-	typedef soa::table_traits<C> traits;							\
-																	\
-	if (traits::tabled) {											\
-	  const auto sdb = size/traits::table_size;						\
-	  const auto smb = size%traits::table_size;						\
-																	\
-	  tbb::parallel_for												\
-		(tbb::blocked_range<size_t>(0,sdb+(smb?1:0)),				\
-		 [&f,data,sdb,smb](const tbb::blocked_range<size_t>& r){	\
-		  for (size_t i=r.begin(); i<std::min(r.end(),sdb); ++i) {	\
-			auto&& t = traits::get_table(data, i);					\
-			__VA_ARGS__												\
-			  for (size_t j=0; j<traits::table_size; ++j)			\
-				apply(f, t, j);										\
-		  }															\
-		  if (r.end() == sdb) {										\
-			auto&& t = traits::get_table(data, sdb);				\
-			__VA_ARGS__												\
-			  for (size_t j=0; j<smb; ++j)							\
-				apply(f, t, j);										\
-		  }															\
-		});															\
-	} else {														\
-	  tbb::parallel_for												\
-		(tbb::blocked_range<size_t>(0,size),						\
-		 [&f,data](const tbb::blocked_range<size_t> r){				\
-		  auto&& t = traits::get_table(data, 0);					\
-		  __VA_ARGS__												\
-			for (size_t i=r.begin(); i<r.end(); ++i)				\
-			  apply(f, t, i);										\
-		});															\
-	}																\
+#define def_parallel_for_each(name, ...)								\
+  template<class C, typename F>											\
+  inline void name(C& container, const F& f) {							\
+	const auto size = container.size();									\
+	auto data = container.data();										\
+																		\
+	typedef soa::table_traits<C> traits;								\
+																		\
+	if (traits::tabled) {												\
+																		\
+	  const auto sdb = size/traits::table_size;							\
+	  const auto smb = size%traits::table_size;							\
+	  																	\
+	  const tbb::blocked_range<size_t> range(0, sdb);					\
+	  																	\
+	  auto const fun = [&f,data](const tbb::blocked_range<size_t>& r) { \
+		for (size_t i=r.begin(); i<r.end(); ++i) {						\
+		  auto&& t = traits::get_table(data, i);						\
+		  __VA_ARGS__													\
+		  for (size_t j=0; j<traits::table_size; ++j)					\
+			apply(f, t, j);												\
+		}																\
+	  };																\
+	  																	\
+	  if (smb) {														\
+																		\
+		tbb::task_group g;												\
+		g.run([&f,data,sdb,smb]{										\
+			auto&& t = traits::get_table(data, sdb);					\
+			__VA_ARGS__													\
+			  for (size_t j=0; j<smb; ++j)								\
+				apply(f, t, j);											\
+		  });															\
+		tbb::parallel_for(range, fun);									\
+		g.wait();														\
+																		\
+	  }	else tbb::parallel_for(range, fun);								\
+	  																	\
+	} else tbb::parallel_for											\
+			 (tbb::blocked_range<size_t>(0, size),						\
+			  [&f,data](const tbb::blocked_range<size_t>& r){			\
+			   auto&& t = traits::get_table(data, 0);					\
+			   __VA_ARGS__												\
+				 for (size_t i=r.begin(); i<r.end(); ++i)				\
+				   apply(f, t, i);										\
+			 });														\
+																		\
   }
 
   def_parallel_for_each(parallel_for_each);
