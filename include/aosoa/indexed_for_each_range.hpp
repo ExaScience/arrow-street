@@ -25,7 +25,7 @@ namespace aosoa {
 	} else f(traits::get_table(data, 0), 0, size, 0);
   }
 
-  template<classC, size_t B, typename F>
+  template<class C, size_t B, typename F>
   inline void indexed_for_each_range(const table_iterator<C,B>& begin,
 									 const table_iterator<C,B>& end,
 									 const F& f) {
