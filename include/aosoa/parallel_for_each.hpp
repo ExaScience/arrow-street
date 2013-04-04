@@ -47,7 +47,7 @@ namespace aosoa {
 	} else {														\
 	  tbb::parallel_for												\
 		(tbb::blocked_range<size_t>(0,size),						\
-		 [&f](const tbb::blocked_range<size_t> r){					\
+		 [&f,data](const tbb::blocked_range<size_t> r){				\
 		  auto&& t = traits::get_table(data, 0);					\
 		  __VA_ARGS__												\
 			for (size_t i=r.begin(); i<r.end(); ++i)				\
