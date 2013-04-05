@@ -12,6 +12,8 @@ namespace aosoa {
   private:
 	Iterator lower, upper;
 
+	typedef table_iterator_traits<Iterator> traits;
+
   public:
 	table_range (Iterator lower, Iterator upper) : lower(lower), upper(upper) {}
 
@@ -25,6 +27,7 @@ namespace aosoa {
 	  lower.index = 0;
 	  upper = that.upper;
 	  that.upper.table = that.lower.table + mid;
+	  that.upper.index = traits::table_size;
 	}
 
 	Iterator begin() {return lower;}

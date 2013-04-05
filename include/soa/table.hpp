@@ -100,12 +100,6 @@ namespace soa {
 	typedef soa::table<value_type,table_size> table_type;
 	typedef table_type& table_reference;
 	typedef const table_reference const_table_reference;
-	typedef table_type* table_pointer;
-	typedef const table_pointer const_table_pointer;
-
-	static inline table_reference get_table(table_pointer tables, size_t i) {
-	  assert(i == 0); return tables[0];
-	}
   };
 
   template<typename T, size_t N> class table_traits<std::array<T,N>> {
@@ -114,13 +108,8 @@ namespace soa {
 	static const auto table_size = 1;
 
 	typedef T value_type;
-	typedef T* table_type;
-	typedef T* table_reference;
-	typedef const T* const_table_reference;
-	typedef T** table_pointer;
-	typedef const T** const_table_pointer;
-
-	static inline table_reference get_table(table_type tables, size_t i) {return &tables[i];}
+	typedef typename std::array<T,N>::iterator table_reference;
+	typedef typename std::array<T,N>::const_iterator const_table_reference;
   };
 
   template<typename T> class table_traits<std::vector<T>> {
@@ -129,13 +118,8 @@ namespace soa {
 	static const auto table_size = 1;
 
 	typedef T value_type;
-	typedef T* table_type;
-	typedef T* table_reference;
-	typedef const T* const_table_reference;
-	typedef T** table_pointer;
-	typedef const T** const_table_pointer;
-
-	static inline table_reference get_table(table_type tables, size_t i) {return &tables[i];}
+	typedef typename std::vector<T>::iterator table_reference;
+	typedef typename std::vector<T>::const_iterator const_table_reference;
   };
 }
 

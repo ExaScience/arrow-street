@@ -112,13 +112,8 @@ namespace soa {
 	static const auto table_size = B;
 
 	typedef typename table_array_type::value_type value_type;
-	typedef typename table_array_type::table_type table_type;
 	typedef typename table_array_type::table_reference table_reference;
 	typedef typename table_array_type::const_table_reference const_table_reference;
-	typedef typename table_array_type::table_pointer table_pointer;
-	typedef typename table_array_type::const_table_pointer const_table_pointer;
-
-	static inline table_reference get_table(table_pointer tables, size_t i) {return tables[i];}
   };
 }
 

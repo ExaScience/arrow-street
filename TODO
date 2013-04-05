@@ -7,9 +7,9 @@ test:
   - singleton instances [ok?, test]
   -	parallel for_each/for_each_range/indexed_for_each/indexed_for_each_range based on tbb [ok, test more]
   - tbb::ranges [ok, test more]
+  - generalize *_for_each_* for non-table_iterators [ok, test more]
 
 missing:
-  - generalize *_for_each_* for non-table_iterators (table_iterator_traits?!?)
   - add table_deque in terms of deque<table*> [needs different handling for container.data()]
   - solution for operator-> in table_iterator?!?
   - add row access functions? [ ]
