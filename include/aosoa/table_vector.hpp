@@ -28,7 +28,7 @@ namespace aosoa {
 		   >
 	class table_vector {
 	public:
-	  static const auto table_size = B;
+	  static constexpr auto table_size = B;
 
 	  typedef C value_type;
 	  typedef Allocator allocator_type;
@@ -213,8 +213,8 @@ namespace soa {
   private:
 	typedef aosoa::table_vector<T,B> table_vector_type;
   public:
-	static const auto tabled = true;
-	static const auto table_size = B;
+	static constexpr auto tabled = true;
+	static constexpr auto table_size = B;
 
 	typedef typename table_vector_type::value_type value_type;
 	typedef typename table_vector_type::table_reference table_reference;

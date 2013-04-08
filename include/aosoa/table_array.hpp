@@ -17,7 +17,7 @@ namespace aosoa  {
   template<class C, size_t B, size_t N>
   class table_array {
   public:
-	static const auto table_size = B;
+	static constexpr auto table_size = B;
 
 	typedef C value_type;
 	typedef size_t size_type;
@@ -84,8 +84,8 @@ namespace aosoa  {
 	const_reverse_iterator rend() const { return reverse_iterator(begin()); }
 	const_reverse_iterator crend() const { return reverse_iterator(begin()); }
 
-	bool empty () const { return N==0; }
-	size_type size () const { return N; }
+	constexpr bool empty () const { return N==0; }
+	constexpr size_type size () const { return N; }
 	size_type max_size () const { return std::array<soa::table<value_type,1>,1>::max_size(); }
 
 	void fill (const_reference value) {
@@ -108,8 +108,8 @@ namespace soa {
   private:
 	typedef aosoa::table_array<T,B,N> table_array_type;
   public:
-	static const auto tabled = true;
-	static const auto table_size = B;
+	static constexpr auto tabled = true;
+	static constexpr auto table_size = B;
 
 	typedef typename table_array_type::value_type value_type;
 	typedef typename table_array_type::table_reference table_reference;

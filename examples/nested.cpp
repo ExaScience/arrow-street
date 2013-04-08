@@ -28,7 +28,7 @@ public:
   }
 };
 
-const size_t blocksize = 32;
+constexpr size_t blocksize = 32;
 
 typedef aosoa::table_vector<Cr,blocksize> cvector;
 

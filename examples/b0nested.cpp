@@ -31,8 +31,8 @@ public:
   }
 };
 
-auto const len = 10000;
-auto const blocksize = 32;
+auto constexpr len = 10000;
+auto constexpr blocksize = 32;
 size_t repeat;
 
 typedef std::array<C,len> barray;

@@ -57,8 +57,8 @@ struct Cref : Bref {
   {}
 };
 
-const size_t len = 100000;
-const size_t blocksize = 32;
+constexpr size_t len = 100000;
+constexpr size_t blocksize = 32;
 
 size_t repeat;
 

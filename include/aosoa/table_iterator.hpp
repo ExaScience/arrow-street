@@ -10,7 +10,7 @@ namespace aosoa {
   template<class C, size_t B>
   class table_iterator {
   public:
-	static const auto table_size = B;
+	static constexpr auto table_size = B;
 
 	typedef C value_type;
 	typedef ptrdiff_t difference_type;
@@ -190,16 +190,16 @@ namespace aosoa {
 	typedef std::iterator_traits<T> traits;
 
   public:
-	static const auto tabled = false;
-	static const auto table_size = 1;
+	static constexpr auto tabled = false;
+	static constexpr auto table_size = 1;
 
 	typedef typename traits::value_type value_type;
   };
 
   template<typename T, size_t N> class table_iterator_traits<table_iterator<T,N>> {
   public:
-	static const auto tabled = true;
-	static const auto table_size = N;
+	static constexpr auto tabled = true;
+	static constexpr auto table_size = N;
 
 	typedef T value_type;
 	typedef soa::table<value_type,table_size> table_type;

@@ -44,8 +44,8 @@ public:
 
 // define the benchmarks.
 
-const size_t len = 10000;     // constant for plain C arrays, std::array and aosoa::table_array
-const size_t blocksize = 32;  // constant, somewhat arbitrary choice, seems to yield good results for this particular test case
+constexpr size_t len = 10000;     // constant for plain C arrays, std::array and aosoa::table_array
+constexpr size_t blocksize = 32;  // constant, somewhat arbitrary choice, seems to yield good results for this particular test case
 
 size_t repeat;                 // repeat each benchmark this many times. not constant to prevent optimizations based on this value
 							   // (not sure if that is really important)

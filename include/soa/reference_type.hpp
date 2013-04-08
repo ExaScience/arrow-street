@@ -19,16 +19,16 @@ namespace soa {
 	struct count_ref<T, typename std::enable_if<
 						  std::is_scalar<
 							typename std::remove_reference<T>::type>::value>::type> {
-	  static const int count = 1;
+	  static constexpr int count = 1;
 	};
 
 	template<> struct count_ref<std::tuple<>> {
-	  static const int count = 0;
+	  static constexpr int count = 0;
 	};
 
 	template<typename Head, typename... Tail>
 	struct count_ref<std::tuple<Head, Tail...>> {
-	  static const int count =
+	  static constexpr int count =
 		count_ref<Head>::count +
 		count_ref<std::tuple<Tail...>>::count;
 	};
@@ -40,13 +40,13 @@ namespace soa {
 	template<typename T>
 	struct get_ref<T, typename std::enable_if<std::is_scalar<T>::value>::type> {
 	  typedef std::tuple<typename std::add_lvalue_reference<T>::type> type;
-	  static const int count = 1;
+	  static constexpr int count = 1;
 	};
 
 	template<typename T>
 	struct get_ref<T, typename std::enable_if<std::is_class<T>::value>::type> {
 	  typedef typename T::reference::type type;
-	  static const int count = count_ref<type>::count;
+	  static constexpr int count = count_ref<type>::count;
 	};
 
 	// extract a subrange from a tuple

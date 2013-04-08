@@ -106,7 +106,7 @@ namespace aosoa {
 #endif
 
 
-#define def_indexed_for_each_it_tabled(name, ...)				   \
+#define def_indexed_for_each_it_tabled(name, ...)		   \
   template<typename F>									   \
   static inline void name(T begin, T end, const F& f){	   \
 	const auto table0 = begin.table;					   \
@@ -117,7 +117,7 @@ namespace aosoa {
 	if (table0 < tablen) {								   \
 	  __VA_ARGS__										   \
 		for (size_t j=index0; j<traits::table_size; ++j) { \
-		  auto obj = table0[0][j]; (j-index0, obj);		   \
+		  auto obj = table0[0][j]; f(j-index0, obj);	   \
 		}												   \
 	  const auto range = tablen-table0;					   \
 	  for (ptrdiff_t i=1; i<range; ++i) {				   \
@@ -140,7 +140,7 @@ namespace aosoa {
 	}													   \
   }
 
-#define def_indexed_for_each_it_non_tabled(name, ...)			\
+#define def_indexed_for_each_it_non_tabled(name, ...)	\
   template<typename F>									\
   static inline void name(T begin, T end, const F& f){	\
 	__VA_ARGS__											\

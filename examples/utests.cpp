@@ -215,8 +215,8 @@ template<class C> void test(C& container) {
 
 }
 
-const size_t len = 100;
-const size_t tablesize = 16;
+constexpr size_t len = 100;
+constexpr size_t tablesize = 16;
 
 void stdAOS() {
   std::array<C,len> array;

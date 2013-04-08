@@ -93,8 +93,8 @@ namespace soa {
 
   template<typename T, size_t N> class table_traits<table<T,N>> {
   public:
-	static const auto tabled = true;
-	static const auto table_size = N;
+	static constexpr auto tabled = true;
+	static constexpr auto table_size = N;
 
 	typedef T value_type;
 	typedef soa::table<value_type,table_size> table_type;
@@ -104,8 +104,8 @@ namespace soa {
 
   template<typename T, size_t N> class table_traits<std::array<T,N>> {
   public:
-	static const auto tabled = false;
-	static const auto table_size = 1;
+	static constexpr auto tabled = false;
+	static constexpr auto table_size = 1;
 
 	typedef T value_type;
 	typedef typename std::array<T,N>::iterator table_reference;
@@ -114,8 +114,8 @@ namespace soa {
 
   template<typename T> class table_traits<std::vector<T>> {
   public:
-	static const auto tabled = false;
-	static const auto table_size = 1;
+	static constexpr auto tabled = false;
+	static constexpr auto table_size = 1;
 
 	typedef T value_type;
 	typedef typename std::vector<T>::iterator table_reference;

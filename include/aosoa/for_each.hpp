@@ -115,7 +115,7 @@ namespace aosoa {
 	if (table0 < tablen) {								   \
 	  __VA_ARGS__										   \
 		for (size_t j=index0; j<traits::table_size; ++j) { \
-		  auto obj = table0[0][j]; (obj);				   \
+		  auto obj = table0[0][j]; f(obj);				   \
 		}												   \
 	  const auto range = tablen-table0;					   \
 	  for (ptrdiff_t i=1; i<range; ++i) {				   \
