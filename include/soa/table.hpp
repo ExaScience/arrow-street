@@ -23,6 +23,8 @@ namespace soa {
 	  inline std::tuple<> operator[](size_t) {return std::tie();}
 	};
 
+#ifndef NVARIADIC
+
 	template<typename Head, typename... Tail, size_t N> class
 #ifdef __ICC
 #ifdef __MIC__
@@ -62,8 +64,111 @@ namespace soa {
 		return std::tuple_cat(field[pos], super::operator[](pos));
 	  }
 	};
-  }
 
+#else
+
+	template<typename T0, size_t N> class
+#ifdef __ICC
+#ifdef __MIC__
+	__declspec(align(64))
+#else
+	__declspec(align(32))
+#endif
+#endif
+	table_base<std::tuple<T0>, N> {
+	private:
+	  typename std::remove_reference<T0>::type field0[N];
+
+	public:
+	  inline std::tuple<T0> operator[] (size_t pos) {
+		return std::tie(field0[pos]);
+	  }
+	};
+
+	template<typename T0, typename T1, size_t N> class
+#ifdef __ICC
+#ifdef __MIC__
+	__declspec(align(64))
+#else
+	__declspec(align(32))
+#endif
+#endif
+	table_base<std::tuple<T0,T1>, N> {
+	private:
+	  typename std::remove_reference<T0>::type field0[N];
+	  typename std::remove_reference<T1>::type field1[N];
+
+	public:
+	  inline std::tuple<T0,T1> operator[] (size_t pos) {
+		return std::tie(field0[pos], field1[pos]);
+	  }
+	};
+
+	template<typename T0, typename T1, typename T2, size_t N> class
+#ifdef __ICC
+#ifdef __MIC__
+	__declspec(align(64))
+#else
+	__declspec(align(32))
+#endif
+#endif
+	table_base<std::tuple<T0,T1,T2>, N> {
+	private:
+	  typename std::remove_reference<T0>::type field0[N];
+	  typename std::remove_reference<T1>::type field1[N];
+	  typename std::remove_reference<T2>::type field2[N];
+
+	public:
+	  inline std::tuple<T0,T1,T2> operator[] (size_t pos) {
+		return std::tie(field0[pos], field1[pos], field2[pos]);
+	  }
+	};
+
+	template<typename T0, typename T1, typename T2, typename T3, size_t N> class
+#ifdef __ICC
+#ifdef __MIC__
+	__declspec(align(64))
+#else
+	__declspec(align(32))
+#endif
+#endif
+	table_base<std::tuple<T0,T1,T2,T3>, N> {
+	private:
+	  typename std::remove_reference<T0>::type field0[N];
+	  typename std::remove_reference<T1>::type field1[N];
+	  typename std::remove_reference<T2>::type field2[N];
+	  typename std::remove_reference<T3>::type field3[N];
+
+	public:
+	  inline std::tuple<T0,T1,T2,T3> operator[] (size_t pos) {
+		return std::tie(field0[pos], field1[pos], field2[pos], field3[pos]);
+	  }
+	};
+
+	template<typename T0, typename T1, typename T2, typename T3, typename T4, size_t N> class
+#ifdef __ICC
+#ifdef __MIC__
+	__declspec(align(64))
+#else
+	__declspec(align(32))
+#endif
+#endif
+	table_base<std::tuple<T0,T1,T2,T3,T4>, N> {
+	private:
+	  typename std::remove_reference<T0>::type field0[N];
+	  typename std::remove_reference<T1>::type field1[N];
+	  typename std::remove_reference<T2>::type field2[N];
+	  typename std::remove_reference<T3>::type field3[N];
+	  typename std::remove_reference<T4>::type field4[N];
+
+	public:
+	  inline std::tuple<T0,T1,T2,T3,T4> operator[] (size_t pos) {
+		return std::tie(field0[pos], field1[pos], field2[pos], field3[pos], field4[pos]);
+	  }
+	};
+
+#endif
+  }
 
   template<class C, size_t N>
   class table : protected table_base<typename C::reference::type, N> {

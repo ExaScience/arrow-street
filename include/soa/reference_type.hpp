@@ -8,6 +8,8 @@
 
 namespace soa {
 
+#ifndef NVARIADIC
+
   namespace {
 	// support for complex data structures
 
@@ -126,6 +128,77 @@ namespace soa {
 	  return std::get<0>(match<N>(tuple));
 	}
   };
+
+#else
+
+  template<typename T0,
+		   typename T1 = void,
+		   typename T2 = void,
+		   typename T3 = void,
+		   typename T4 = void> struct reference_type;
+
+  template<typename T0> struct reference_type<T0> {
+	typedef std::tuple<T0&> type;
+
+	template<int N> static auto get(const type& tuple)
+	  -> decltype(std::get<N>(tuple))
+	{
+	  return std::get<N>(tuple);
+	}
+  };
+
+  template<typename T0,
+		   typename T1> struct reference_type<T0,T1> {
+	typedef std::tuple<T0&, T1&> type;
+
+	template<int N> static auto get(const type& tuple)
+	  -> decltype(std::get<N>(tuple))
+	{
+	  return std::get<N>(tuple);
+	}
+  };
+
+  template<typename T0,
+		   typename T1,
+		   typename T2> struct reference_type<T0,T1,T2> {
+	typedef std::tuple<T0&, T1&, T2&> type;
+
+	template<int N> static auto get(const type& tuple)
+	  -> decltype(std::get<N>(tuple))
+	{
+	  return std::get<N>(tuple);
+	}
+  };
+
+  template<typename T0,
+		   typename T1,
+		   typename T2,
+		   typename T3> struct reference_type<T0,T1,T2,T3> {
+	typedef std::tuple<T0&, T1&, T2&, T3&> type;
+
+	template<int N> static auto get(const type& tuple)
+	  -> decltype(std::get<N>(tuple))
+	{
+	  return std::get<N>(tuple);
+	}
+  };
+
+  template<typename T0,
+		   typename T1,
+		   typename T2,
+		   typename T3,
+		   typename T4> struct reference_type {
+	typedef std::tuple<T0&, T1&, T2&, T3&, T4&> type;
+
+	template<int N> static auto get(const type& tuple)
+	  -> decltype(std::get<N>(tuple))
+	{
+	  return std::get<N>(tuple);
+	}
+  };
+
+#endif
+
 }
 
 #endif

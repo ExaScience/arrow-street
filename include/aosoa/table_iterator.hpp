@@ -122,7 +122,7 @@ namespace aosoa {
 	inline table_iterator operator+=(difference_type n) {
 	  index += n;
 	  if (index < 0) {
-		table += index/table_size-1; index = table_size+nindex%table_size;
+		table += index/table_size-1; index = table_size+index%table_size;
 	  } else {
 		table += index/table_size; index %= table_size;
 	  }
@@ -132,7 +132,7 @@ namespace aosoa {
 	inline table_iterator operator-=(difference_type n) {
 	  index -= n;
 	  if (index < 0) {
-		table += index/table_size-1; index = table_size+nindex%table_size;
+		table += index/table_size-1; index = table_size+index%table_size;
 	  } else {
 		table += index/table_size; index %= table_size;
 	  }

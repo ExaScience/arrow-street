@@ -1,3 +1,15 @@
+#ifdef NVARIADIC
+
+#pragma message "inheritance / nesting not supported in the non-variadic version of the SOA library"
+
+#include <iostream>
+
+int main() {
+  std::cout << "inheritance / nesting not supported in the non-variadic version of the SOA library\n";
+}
+
+#else
+
 #include "soa/reference_type.hpp"
 #include "soa/table.hpp"
 
@@ -52,10 +64,17 @@ template<typename A> void flat_update(A& a, int n) {
 template<typename A> void nested_update(A& a) {
   typedef decltype(a[0]) C;
 
+#ifdef __ICC
   aosoa::ivdep_for_each(a, [](C& e){
 	  e.pos.x += e.vel.x;
 	  e.pos.y += e.vel.y;
 	});
+#else
+  aosoa::for_each(a, [](C& e){
+	  e.pos.x += e.vel.x;
+	  e.pos.y += e.vel.y;
+	});
+#endif
 }
 
 constexpr size_t len = 100000;
@@ -214,3 +233,5 @@ int main() {
   nestedSOVN();
   nestedSOVB();
 }
+
+#endif

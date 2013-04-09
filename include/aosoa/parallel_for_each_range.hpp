@@ -101,7 +101,7 @@ namespace aosoa {
 	class _parallel_for_each_range_it<T, typename std::enable_if<!table_iterator_traits<T>::tabled>::type> {
 	public:
 	  template<typename F>
-	  static inline loop(T begin, T end, const F& f) {
+	  static inline void loop(T begin, T end, const F& f) {
 		tbb::parallel_for
 		  (tbb::blocked_range<T>(begin, end),
 		   [&f](const tbb::blocked_range<T>& r){

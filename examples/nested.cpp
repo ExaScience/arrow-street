@@ -36,11 +36,19 @@ size_t repeat;
 size_t len;
 
 void benchmark (cvector& vec, size_t repeat) {
+#ifdef __ICC
   aosoa::vector_indexed_for_each(vec, [](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
 	});
+#else
+  aosoa::indexed_for_each(vec, [](size_t index, Cr& element){
+	  element.x = index;
+	  element.y = index;
+	  element.z = index;
+	});
+#endif
 
   float global = 0;
 

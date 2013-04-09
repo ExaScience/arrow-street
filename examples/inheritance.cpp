@@ -1,3 +1,15 @@
+#ifdef NVARIADIC
+
+#pragma message "inheritance / nesting not supported in the non-variadic version of the SOA library"
+
+#include <iostream>
+
+int main() {
+  std::cout << "inheritance / nesting not supported in the non-variadic version of the SOA library\n";
+}
+
+#else
+
 #include "soa/reference_type.hpp"
 #include "soa/table.hpp"
 
@@ -103,6 +115,7 @@ template<typename A> inline void flat_benchmark(A& array, size_t len, size_t rep
 template<typename A> inline void nested_benchmark (A& array, size_t repeat) {
   typedef decltype(array[0]) C;
 
+#ifdef __ICC
   aosoa::ivdep_indexed_for_each(array, [](size_t i, C& e){
 	  e.x = i;
 	  e.y = i+1;
@@ -111,6 +124,16 @@ template<typename A> inline void nested_benchmark (A& array, size_t repeat) {
 	  e.p = i+4;
 	  e.q = i+5;
 	});
+#else
+  aosoa::indexed_for_each(array, [](size_t i, C& e){
+	  e.x = i;
+	  e.y = i+1;
+	  e.u = i+2;
+	  e.v = i+3;
+	  e.p = i+4;
+	  e.q = i+5;
+	});
+#endif
 
   float globalx = 0, globaly = 0;
 
@@ -118,17 +141,31 @@ template<typename A> inline void nested_benchmark (A& array, size_t repeat) {
 
   for (size_t r = 0; r < repeat; ++r) {
 
+#ifdef __ICC
 	aosoa::ivdep_for_each(array, [](C& e) {
 		e.x += e.u * e.p;
 		e.y += e.v * e.q;
 	  });
+#else
+	aosoa::for_each(array, [](C& e) {
+		e.x += e.u * e.p;
+		e.y += e.v * e.q;
+	  });
+#endif
 
 	float localx = 0, localy = 0;
 
+#ifdef __ICC
 	aosoa::ivdep_for_each(array, [&](C& e) {
 		localx += e.x;
 		localy += e.y;
 	  });
+#else
+	aosoa::for_each(array, [&](C& e) {
+		localx += e.x;
+		localy += e.y;
+	  });
+#endif
 
 	globalx += localx;
 	globaly += localy;
@@ -220,3 +257,5 @@ int main() {
   nestedSOVN();
   nestedSOVB();
 }
+
+#endif
