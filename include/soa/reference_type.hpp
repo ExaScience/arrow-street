@@ -104,7 +104,7 @@ namespace soa {
   template<> struct reference_type<> {
 	typedef std::tuple<> type;
 
-	template<int> static type match(const type&) {
+	template<int> inline static type match(const type&) {
 	  return std::tie();
 	}
   };
@@ -116,13 +116,13 @@ namespace soa {
 
 	typedef std::tuple<Head, Tail...> _tuple;
 
-	template<int N> static auto match(const type& tuple)
+	template<int N> inline static auto match(const type& tuple)
 	  -> decltype(tuple_match<N, 0, type, _tuple>::get(tuple))
 	{
 	  return tuple_match<N, 0, type, _tuple>::get(tuple);
 	}
 
-	template<int N> static auto get(const type& tuple)
+	template<int N> inline static auto get(const type& tuple)
 	  -> decltype(std::get<0>(match<N>(tuple)))
 	{
 	  return std::get<0>(match<N>(tuple));
@@ -140,7 +140,7 @@ namespace soa {
   template<typename T0> struct reference_type<T0> {
 	typedef std::tuple<T0&> type;
 
-	template<int N> static auto get(const type& tuple)
+	template<int N> inline static auto get(const type& tuple)
 	  -> decltype(std::get<N>(tuple))
 	{
 	  return std::get<N>(tuple);
@@ -151,7 +151,7 @@ namespace soa {
 		   typename T1> struct reference_type<T0,T1> {
 	typedef std::tuple<T0&, T1&> type;
 
-	template<int N> static auto get(const type& tuple)
+	template<int N> inline static auto get(const type& tuple)
 	  -> decltype(std::get<N>(tuple))
 	{
 	  return std::get<N>(tuple);
@@ -163,7 +163,7 @@ namespace soa {
 		   typename T2> struct reference_type<T0,T1,T2> {
 	typedef std::tuple<T0&, T1&, T2&> type;
 
-	template<int N> static auto get(const type& tuple)
+	template<int N> inline static auto get(const type& tuple)
 	  -> decltype(std::get<N>(tuple))
 	{
 	  return std::get<N>(tuple);
@@ -176,7 +176,7 @@ namespace soa {
 		   typename T3> struct reference_type<T0,T1,T2,T3> {
 	typedef std::tuple<T0&, T1&, T2&, T3&> type;
 
-	template<int N> static auto get(const type& tuple)
+	template<int N> inline static auto get(const type& tuple)
 	  -> decltype(std::get<N>(tuple))
 	{
 	  return std::get<N>(tuple);
@@ -190,7 +190,7 @@ namespace soa {
 		   typename T4> struct reference_type {
 	typedef std::tuple<T0&, T1&, T2&, T3&, T4&> type;
 
-	template<int N> static auto get(const type& tuple)
+	template<int N> inline static auto get(const type& tuple)
 	  -> decltype(std::get<N>(tuple))
 	{
 	  return std::get<N>(tuple);
