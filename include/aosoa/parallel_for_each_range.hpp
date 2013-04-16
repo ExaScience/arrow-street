@@ -15,6 +15,11 @@
 #include "tbb/parallel_for.h"
 #include "tbb/task_group.h"
 
+#ifdef __cilk
+#include <cilk/cilk.h>
+#include <cilk/cilk_api.h>
+#endif
+
 namespace aosoa {
 
   namespace {
@@ -46,7 +51,20 @@ namespace aosoa {
 		  g.wait();
 		} else tbb::parallel_for(range, fun);
 	  }
+
+#ifdef __cilk
+	  template<typename F>
+	  static inline void cilk_loop(C& container, const F& f) {
+		const auto size = container.size();
+		auto data = container.data();
+		const auto sdb = size/traits::table_size;
+		const auto smb = size%traits::table_size;
+
+		if (smb) cilk_spawn f(data[sdb], 0, smb);
+		cilk_for (size_t i=0; i<sdb; ++i) f(data[i], 0, traits::table_size);
+	  }
 	};
+#endif
 
 	template<class C>
 	class _parallel_for_each_range<C, typename std::enable_if<!soa::table_traits<C>::tabled>::type> {
@@ -60,12 +78,30 @@ namespace aosoa {
 			f(r.begin(), 0, r.end()-r.begin());
 		  });
 	  }
+
+#ifdef __cilk
+	  template<typename F>
+	  static inline void cilk_loop(C& container, const F& f) {
+		auto begin = container.begin();
+		auto end = container.end();
+		auto span = end-begin;
+		auto grainsize = std::min(2048l, span / (8 * __cilkrts_get_nworkers()));
+		if (grainsize == 0) grainsize = 1;
+		cilk_for (auto it=begin; it<end; it+=grainsize) f(it, 0, std::min(grainsize, end-it));
+	  }
+#endif
 	};
   }
 
   template<class C, typename F>
   inline void parallel_for_each_range(C& container, const F& f)
   {_parallel_for_each_range<C>::loop(container, f);}
+
+#ifdef __cilk
+  template<class C, typename F>
+  inline void cilk_parallel_for_each_range(C& container, const F& f)
+  {_parallel_for_each_range<C>::cilk_loop(container, f);}
+#endif
 
   namespace {
 	template<typename T, typename Enable = void> class _parallel_for_each_range_it;
@@ -95,6 +131,26 @@ namespace aosoa {
 			}
 		  });
 	  }
+
+#ifdef __cilk
+	  template<typename F>
+	  static inline void cilk_loop(T begin, T end, const F& f) {
+		const auto table0 = begin.table;
+		const auto index0 = begin.index;
+		const auto tablen = end.table;
+		const auto indexn = end.index;
+
+		if (table0 < tablen) {
+		  cilk_spawn f(table0[0], index0, traits::table_size);
+		  const auto range = tablen-table0;
+		  cilk_spawn f(tablen[0], 0, indexn);
+		  cilk_for (ptrdiff_t i=1; i<range; ++i)
+			f(table0[i], 0, traits::table_size);
+		} else if (table0 == tablen) {
+		  f(table0[0], index0, indexn);
+		}
+	  }
+#endif
 	};
 
 	template<typename T>
@@ -108,12 +164,28 @@ namespace aosoa {
 			f(r.begin(), 0, r.end()-r.begin());
 		  });
 	  }
+
+#ifdef __cilk
+	  template<typename F>
+	  static inline void cilk_loop(T begin, T end, const F& f) {
+		auto span = end-begin;
+		size_t grainsize = std::min(2048, span / (8 * __cilkrts_get_nworkers()));
+		if (grainsize == 0) grainsize = 1;
+		cilk_for (auto it=begin; it<end; it+=grainsize) f(it, 0, std::min(grainsize, end-it));
+	  }
+#endif
 	};
   }
 
   template<typename T, typename F>
   inline void parallel_for_each_range(T begin, T end, const F& f)
   {_parallel_for_each_range_it<T>::loop(begin, end, f);}
+
+#ifdef __cilk
+  template<typename T, typename F>
+  inline void cilk_parallel_for_each_range(T begin, T end, const F& f)
+  {_parallel_for_each_range_it<T>::loop(begin, end, f);}
+#endif
 }
 
 #endif

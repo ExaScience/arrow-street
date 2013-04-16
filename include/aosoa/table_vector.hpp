@@ -157,8 +157,10 @@ namespace aosoa {
 	  void pop_back () { n--; }
 
 	  void resize (size_type count) {
-		n = count;
-		tables.resize(count/table_size+(count%table_size?1:0));
+		if (n != count) {
+		  n = count;
+		  tables.resize(count/table_size+(count%table_size?1:0));
+		}
 	  }
 
 	  void resize (size_type count, const_reference value) {

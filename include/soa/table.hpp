@@ -186,11 +186,12 @@ namespace soa {
   class singleton_table : protected table_base<typename C::reference::type, 1> {
   private:
 	typedef table_base<typename C::reference::type, 1> super;
-	const C singleton;
+	C singleton;
 
   public:
 	singleton_table () : singleton(super::operator[](0)) {}
 	inline C* operator-> () {return &singleton;}
+	inline C& operator* () {return singleton;}
   };
 
 

@@ -15,6 +15,8 @@ namespace aosoa {
 	typedef table_iterator_traits<Iterator> traits;
 
   public:
+	table_range () {}
+
 	table_range (Iterator lower, Iterator upper) : lower(lower), upper(upper) {}
 
 	bool empty() const {return lower == upper;}

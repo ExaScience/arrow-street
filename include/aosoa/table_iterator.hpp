@@ -5,6 +5,8 @@
 
 #include <iterator>
 
+#include "soa/table.hpp"
+
 namespace aosoa {
 
   template<class C, size_t B>
@@ -203,6 +205,7 @@ namespace aosoa {
 
 	typedef T value_type;
 	typedef soa::table<value_type,table_size> table_type;
+	typedef table_type* table_pointer;
 	typedef table_type& table_reference;
   };
 }
