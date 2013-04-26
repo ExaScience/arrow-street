@@ -71,7 +71,7 @@ namespace aosoa {
 		auto& t = data[sdb];											\
 		const auto offset = sdb*traits::table_size;						\
 		__VA_ARGS__														\
-		  for (size_t j=0; j<smb; ++j) {								\
+		  cilk_for (size_t j=0; j<smb; ++j) {								\
 			auto obj = t[j]; f(offset+j, obj);							\
 		  }																\
 	  }();																\
@@ -80,7 +80,7 @@ namespace aosoa {
 	  auto& t = data[i];												\
 	  const auto offset = i*traits::table_size;							\
 	  __VA_ARGS__														\
-		for (size_t j=0; j<traits::table_size; ++j) {					\
+		cilk_for (size_t j=0; j<traits::table_size; ++j) {					\
 		  auto obj = t[j]; f(offset+j, obj);							\
 		}																\
 	}																	\
@@ -116,7 +116,7 @@ namespace aosoa {
 	  const auto n = std::min(grainsize, end-it);						\
 	  const auto offset = it-begin;										\
 	  __VA_ARGS__														\
-		for (size_t j=0; j<n; ++j) f(offset+j, it[j]);					\
+		cilk_for (size_t j=0; j<n; ++j) f(offset+j, it[j]);					\
 	}																	\
   }
 #endif
@@ -282,7 +282,7 @@ namespace aosoa {
 	if (table0 < tablen) {											\
 	  cilk_spawn [=]{												\
 		__VA_ARGS__													\
-		  for (size_t j=index0; j<traits::table_size; ++j) {		\
+		  cilk_for (size_t j=index0; j<traits::table_size; ++j) {		\
 			auto obj = table0[0][j]; f(j-index0, obj);				\
 		  }															\
 	  }();															\
@@ -290,14 +290,14 @@ namespace aosoa {
 	  cilk_spawn [=]{												\
 		const auto offset = range*traits::table_size-index0;		\
 		__VA_ARGS__													\
-		  for (size_t j=0; j<indexn; ++j) {							\
+		  cilk_for (size_t j=0; j<indexn; ++j) {							\
 			auto obj = tablen[0][j]; f(offset+j, obj);				\
 		  }															\
 	  }();															\
 	  cilk_for (ptrdiff_t i=1; i<range; ++i) {						\
 		const auto offset = i*traits::table_size-index0;			\
 		__VA_ARGS__													\
-		  for (size_t j=0; j<traits::table_size; ++j) {				\
+		  cilk_for (size_t j=0; j<traits::table_size; ++j) {				\
 			auto obj = table0[i][j]; f(offset+j, obj);				\
 		  }															\
 	  }																\
@@ -336,7 +336,7 @@ namespace aosoa {
 	  const auto n = std::min(grainsize, end-it);						\
 	  const auto offset = it-begin;										\
 	  __VA_ARGS__														\
-		for (size_t j=0; j<n; ++j) f(offset+j, it[j]);					\
+		cilk_for (size_t j=0; j<n; ++j) f(offset+j, it[j]);					\
 	}																	\
   }
 #endif

@@ -68,7 +68,7 @@ namespace aosoa {
 	  cilk_spawn [&f,data,sdb,smb]{										\
 		auto& t = data[sdb];											\
 		__VA_ARGS__														\
-		  for (size_t j=0; j<smb; ++j) {								\
+		  cilk_for (size_t j=0; j<smb; ++j) {								\
 			auto obj = t[j]; f(obj);									\
 		  }																\
 	  }();																\
@@ -76,7 +76,7 @@ namespace aosoa {
 	cilk_for (size_t i=0; i<sdb; ++i) {									\
 	  auto& t = data[i];												\
 	  __VA_ARGS__														\
-		for (size_t j=0; j<traits::table_size; ++j) {					\
+		cilk_for (size_t j=0; j<traits::table_size; ++j) {					\
 		  auto obj = t[j]; f(obj);										\
 		}																\
 	}																	\
@@ -110,7 +110,7 @@ namespace aosoa {
 	cilk_for (auto it=begin; it<end; it+=grainsize)	{					\
 	  const auto n = std::min(grainsize, end-it);						\
 	  __VA_ARGS__														\
-		for (size_t j=0; j<n; ++j) f(it[j]);							\
+		cilk_for (size_t j=0; j<n; ++j) f(it[j]);							\
 	}																	\
   }
 #endif
@@ -273,20 +273,20 @@ namespace aosoa {
 	if (table0 < tablen) {											\
 	  cilk_spawn [=]{												\
 		__VA_ARGS__													\
-		  for (size_t j=index0; j<traits::table_size; ++j) {		\
+		  cilk_for (size_t j=index0; j<traits::table_size; ++j) {		\
 			auto obj = table0[0][j]; f(obj);						\
 		  }															\
 	  }();															\
 	  const auto range = tablen-table0;								\
 	  cilk_spawn [=]{												\
 		__VA_ARGS__													\
-		  for (size_t j=0; j<indexn; ++j) {							\
+		  cilk_for (size_t j=0; j<indexn; ++j) {							\
 			auto obj = tablen[0][j]; f(obj);						\
 		  }															\
 	  }();															\
 	  cilk_for (ptrdiff_t i=1; i<range; ++i) {						\
 		__VA_ARGS__													\
-		  for (size_t j=0; j<traits::table_size; ++j) {				\
+		  cilk_for (size_t j=0; j<traits::table_size; ++j) {				\
 			auto obj = table0[i][j]; f(obj);						\
 		  }															\
 	  }																\
@@ -323,7 +323,7 @@ namespace aosoa {
 	cilk_for (auto it=begin; it<end; it+=grainsize)	{					\
 	  const auto n = std::min(grainsize, end-it);						\
 	  __VA_ARGS__														\
-		for (size_t j=0; j<n; ++j) f(it[j]);							\
+		cilk_for (size_t j=0; j<n; ++j) f(it[j]);							\
 	}																	\
   }
 #endif

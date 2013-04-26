@@ -63,8 +63,8 @@ namespace aosoa {
 		if (smb) cilk_spawn f(data[sdb], 0, smb);
 		cilk_for (size_t i=0; i<sdb; ++i) f(data[i], 0, traits::table_size);
 	  }
-	};
 #endif
+	};
 
 	template<class C>
 	class _parallel_for_each_range<C, typename std::enable_if<!soa::table_traits<C>::tabled>::type> {
