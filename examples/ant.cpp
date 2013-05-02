@@ -12,6 +12,7 @@ int main() {
 
 #include "soa/reference_type.hpp"
 #include "soa/table.hpp"
+#include "soa/dtable.hpp"
 
 #include "aosoa/table_array.hpp"
 #include "aosoa/table_vector.hpp"
@@ -167,6 +168,12 @@ void flatSOA() {
   flat_benchmark(array, len, repeat);
 }
 
+void flatDSOA() {
+  std::cout << "\nflat dynamic SOA array\n";
+  soa::dtable<Ant> array(len);
+  flat_benchmark(array, len, repeat);
+}
+
 void stdAOS() {
   std::cout << "\nstd::array\n";
   std::array<Ant0,len> array;
@@ -222,6 +229,7 @@ int main() {
 
   flatAOS();
   flatSOA();
+  flatDSOA();
 
   stdAOS();
   nestedSOA1();

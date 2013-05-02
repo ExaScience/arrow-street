@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "soa/table_traits.hpp"
 #include "aosoa/table_iterator.hpp"
 
 namespace aosoa {

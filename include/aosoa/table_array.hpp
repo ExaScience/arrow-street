@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "soa/table.hpp"
+#include "soa/table_traits.hpp"
 #include "aosoa/table_iterator.hpp"
 
 namespace aosoa  {

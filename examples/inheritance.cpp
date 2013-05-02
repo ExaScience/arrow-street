@@ -12,6 +12,7 @@ int main() {
 
 #include "soa/reference_type.hpp"
 #include "soa/table.hpp"
+#include "soa/dtable.hpp"
 
 #include "aosoa/table_array.hpp"
 #include "aosoa/table_vector.hpp"
@@ -76,12 +77,13 @@ size_t repeat;
 
 template<typename A> inline void flat_benchmark(A& array, size_t len, size_t repeat) {
   for (size_t i=0; i<len; ++i) {
-	array[i].x = i;
-	array[i].y = i+1;
-	array[i].u = i+2;
-	array[i].v = i+3;
-	array[i].p = i+4;
-	array[i].q = i+5;
+	auto&& a = array[i]; // hack to work around an ICC bug in combination with dtable
+	a.x = i;
+	a.y = i+1;
+	a.u = i+2;
+	a.v = i+3;
+	a.p = i+4;
+	a.q = i+5;
   }
 
   float globalx = 0, globaly = 0;
@@ -191,6 +193,12 @@ void flatSOA() {
   flat_benchmark(array, len, repeat);
 }
 
+void flatDSOA() {
+  std::cout << "\nflat dynamic SOA array\n";
+  soa::dtable<Cref> array(len);
+  flat_benchmark(array, len, repeat);
+}
+
 void stdAOS() {
   std::cout << "\nstd::array\n";
   std::array<C,len> array;
@@ -246,6 +254,7 @@ int main() {
 
   flatAOS();
   flatSOA();
+  flatDSOA();
 
   stdAOS();
   nestedSOA1();

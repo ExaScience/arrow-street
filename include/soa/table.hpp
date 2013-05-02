@@ -9,9 +9,6 @@
 #include <tuple>
 #include <type_traits>
 
-#include <array>
-#include <vector>
-
 namespace soa {
 
   namespace {
@@ -92,6 +89,10 @@ namespace soa {
 	  inline std::tuple<T0> operator[] (size_t pos) {
 		return std::tie(field0[pos]);
 	  }
+
+	  inline const std::tuple<T0> operator[] (size_t pos) const {
+		return std::tie(const_cast<const T0>(field0[pos]));
+	  }
 	};
 
 	template<typename T0, typename T1, size_t N> class
@@ -110,6 +111,11 @@ namespace soa {
 	public:
 	  inline std::tuple<T0,T1> operator[] (size_t pos) {
 		return std::tie(field0[pos], field1[pos]);
+	  }
+
+	  inline const std::tuple<T0,T1> operator[] (size_t pos) const {
+		return std::tie(const_cast<const T0>(field0[pos]),
+						const_cast<const T1>(field1[pos]));
 	  }
 	};
 
@@ -130,6 +136,12 @@ namespace soa {
 	public:
 	  inline std::tuple<T0,T1,T2> operator[] (size_t pos) {
 		return std::tie(field0[pos], field1[pos], field2[pos]);
+	  }
+
+	  inline const std::tuple<T0,T1,T2> operator[] (size_t pos) const {
+		return std::tie(const_cast<const T0>(field0[pos]),
+						const_cast<const T1>(field1[pos]),
+						const_cast<const T2>(field2[pos]));
 	  }
 	};
 
@@ -152,6 +164,13 @@ namespace soa {
 	  inline std::tuple<T0,T1,T2,T3> operator[] (size_t pos) {
 		return std::tie(field0[pos], field1[pos], field2[pos], field3[pos]);
 	  }
+
+	  inline const std::tuple<T0,T1,T2,T3> operator[] (size_t pos) const {
+		return std::tie(const_cast<const T0>(field0[pos]),
+						const_cast<const T1>(field1[pos]),
+						const_cast<const T2>(field2[pos]),
+						const_cast<const T3>(field3[pos]));
+	  }
 	};
 
 	template<typename T0, typename T1, typename T2, typename T3, typename T4, size_t N> class
@@ -173,6 +192,14 @@ namespace soa {
 	public:
 	  inline std::tuple<T0,T1,T2,T3,T4> operator[] (size_t pos) {
 		return std::tie(field0[pos], field1[pos], field2[pos], field3[pos], field4[pos]);
+	  }
+
+	  inline const std::tuple<T0,T1,T2,T3,T4> operator[] (size_t pos) const {
+		return std::tie(const_cast<const T0>(field0[pos]),
+						const_cast<const T1>(field1[pos]),
+						const_cast<const T2>(field2[pos]),
+						const_cast<const T3>(field3[pos]),
+						const_cast<const T4>(field4[pos]));
 	  }
 	};
 
@@ -202,39 +229,6 @@ namespace soa {
 	inline const C operator() () const {return C(super::operator[](0));}
   };
 
-
-  template<typename T> class table_traits;
-
-  template<typename T, size_t N> class table_traits<table<T,N>> {
-  public:
-	static constexpr auto tabled = true;
-	static constexpr auto table_size = N;
-
-	typedef T value_type;
-	typedef soa::table<value_type,table_size> table_type;
-	typedef table_type& table_reference;
-	typedef const table_reference const_table_reference;
-  };
-
-  template<typename T, size_t N> class table_traits<std::array<T,N>> {
-  public:
-	static constexpr auto tabled = false;
-	static constexpr auto table_size = 1;
-
-	typedef T value_type;
-	typedef typename std::array<T,N>::iterator table_reference;
-	typedef typename std::array<T,N>::const_iterator const_table_reference;
-  };
-
-  template<typename T> class table_traits<std::vector<T>> {
-  public:
-	static constexpr auto tabled = false;
-	static constexpr auto table_size = 1;
-
-	typedef T value_type;
-	typedef typename std::vector<T>::iterator table_reference;
-	typedef typename std::vector<T>::const_iterator const_table_reference;
-  };
 }
 
 #endif

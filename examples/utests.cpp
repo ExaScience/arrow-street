@@ -1,5 +1,6 @@
 #include "soa/reference_type.hpp"
 #include "soa/table.hpp"
+#include "soa/dtable.hpp"
 
 #include "aosoa/table_array.hpp"
 #include "aosoa/table_vector.hpp"
@@ -309,9 +310,15 @@ void stdAOS() {
 }
 
 #ifdef NO_ITERATORS
-void flatAOS() {
+void flatSOA() {
   soa::table<Cref,len> array;
-  std::cout << "\nflat SOA arary\n";
+  std::cout << "\nflat SOA array\n";
+  test(array);
+}
+
+void flatDSOA() {
+  soa::dtable<Cref> array(len);
+  std::cout << "\nflat dynamic SOA array\n";
   test(array);
 }
 #endif
@@ -361,7 +368,8 @@ void nestedSOVB() {
 int main() {
   stdAOS();
 #ifdef NO_ITERATORS
-  flatAOS();
+  flatSOA();
+  flatDSOA();
 #endif
   nestedSOA1();
   nestedSOAN();

@@ -7,7 +7,8 @@
 
 #include <algorithm>
 
-#include "soa/table.hpp"
+#include "soa/table_traits.hpp"
+
 #include "aosoa/table_iterator.hpp"
 #include "aosoa/table_range.hpp"
 
