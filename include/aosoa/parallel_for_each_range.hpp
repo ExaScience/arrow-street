@@ -12,9 +12,11 @@
 #include "aosoa/table_iterator.hpp"
 #include "aosoa/table_range.hpp"
 
+#ifndef NOTBB
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_for.h"
 #include "tbb/task_group.h"
+#endif
 
 #ifdef __cilk
 #include <cilk/cilk.h>
@@ -31,6 +33,7 @@ namespace aosoa {
 	private:
 	  typedef soa::table_traits<C> traits;
 	public:
+#ifndef NOTBB
 	  template<typename F>
 	  static inline void loop(C& container, const F& f) {
 		const auto size = container.size();
@@ -52,6 +55,7 @@ namespace aosoa {
 		  g.wait();
 		} else tbb::parallel_for(range, fun);
 	  }
+#endif
 
 #ifdef __cilk
 	  template<typename F>
@@ -70,6 +74,7 @@ namespace aosoa {
 	template<class C>
 	class _parallel_for_each_range<C, typename std::enable_if<!soa::table_traits<C>::tabled>::type> {
 	public:
+#ifndef NOTBB
 	  template<typename F>
 	  static inline void loop(C& container, const F& f) {
 		tbb::parallel_for
@@ -79,6 +84,7 @@ namespace aosoa {
 			f(r.begin(), 0, r.end()-r.begin());
 		  });
 	  }
+#endif
 
 #ifdef __cilk
 	  template<typename F>
@@ -94,9 +100,11 @@ namespace aosoa {
 	};
   }
 
+#ifndef NOTBB
   template<class C, typename F>
   inline void parallel_for_each_range(C& container, const F& f)
   {_parallel_for_each_range<C>::loop(container, f);}
+#endif
 
 #ifdef __cilk
   template<class C, typename F>
@@ -112,6 +120,7 @@ namespace aosoa {
 	private:
 	  typedef table_iterator_traits<T> traits;
 	public:
+#ifndef NOTBB
 	  template<typename F>
 	  static inline void loop(T begin, T end, const F& f) {
 		tbb::parallel_for
@@ -132,6 +141,7 @@ namespace aosoa {
 			}
 		  });
 	  }
+#endif
 
 #ifdef __cilk
 	  template<typename F>
@@ -157,6 +167,7 @@ namespace aosoa {
 	template<typename T>
 	class _parallel_for_each_range_it<T, typename std::enable_if<!table_iterator_traits<T>::tabled>::type> {
 	public:
+#ifndef NOTBB
 	  template<typename F>
 	  static inline void loop(T begin, T end, const F& f) {
 		tbb::parallel_for
@@ -165,6 +176,7 @@ namespace aosoa {
 			f(r.begin(), 0, r.end()-r.begin());
 		  });
 	  }
+#endif
 
 #ifdef __cilk
 	  template<typename F>
@@ -178,9 +190,11 @@ namespace aosoa {
 	};
   }
 
+#ifndef NOTBB
   template<typename T, typename F>
   inline void parallel_for_each_range(T begin, T end, const F& f)
   {_parallel_for_each_range_it<T>::loop(begin, end, f);}
+#endif
 
 #ifdef __cilk
   template<typename T, typename F>

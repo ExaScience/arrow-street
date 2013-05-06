@@ -12,9 +12,11 @@
 #include "aosoa/table_iterator.hpp"
 #include "aosoa/table_range.hpp"
 
+#ifndef NOTBB
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_for.h"
 #include "tbb/task_group.h"
+#endif
 
 #ifdef __cilk
 #include <cilk/cilk.h>
@@ -23,6 +25,7 @@
 
 namespace aosoa {
 
+#ifndef NOTBB
 #define def_parallel_indexed_for_each_tabled(name, ...)					\
   template<typename F>													\
   static inline void name(C& container, const F& f) {					\
@@ -58,6 +61,7 @@ namespace aosoa {
 	  g.wait();															\
 	} else tbb::parallel_for(range, fun);								\
   }
+#endif
 
 #ifdef __cilk
 #define def_cilk_parallel_indexed_for_each_tabled(name, ...)			\
@@ -89,6 +93,7 @@ namespace aosoa {
   }
 #endif
 
+#ifndef NOTBB
 #define def_parallel_indexed_for_each_non_tabled(name, ...)				\
   template<typename F>													\
   static inline void name(C& container, const F& f) {					\
@@ -104,6 +109,7 @@ namespace aosoa {
 			f(it-root, *it);											\
 	  });																\
   }
+#endif
 
 #ifdef __cilk
 #define def_cilk_parallel_indexed_for_each_non_tabled(name, ...)		\
@@ -131,6 +137,7 @@ namespace aosoa {
 	private:
 	  typedef soa::table_traits<C> traits;
 	public:
+#ifndef NOTBB
 	  def_parallel_indexed_for_each_tabled(loop);
 #ifdef __ICC
 	  def_parallel_indexed_for_each_tabled(vector_loop, _Pragma("vector always"));
@@ -138,6 +145,7 @@ namespace aosoa {
 	  def_parallel_indexed_for_each_tabled(vector_ivdep_loop, _Pragma("ivdep") _Pragma("vector always"));
 	  def_parallel_indexed_for_each_tabled(simd_loop, _Pragma("simd"));
 	  def_parallel_indexed_for_each_tabled(novector_loop, _Pragma("novector"));
+#endif
 #endif
 #ifdef __cilk
 	  def_cilk_parallel_indexed_for_each_tabled(cilk_loop);
@@ -154,6 +162,7 @@ namespace aosoa {
 	template<typename C>
 	class _parallel_indexed_for_each<C, typename std::enable_if<!soa::table_traits<C>::tabled>::type> {
 	public:
+#ifndef NOTBB
 	  def_parallel_indexed_for_each_non_tabled(loop);
 #ifdef __ICC
 	  def_parallel_indexed_for_each_non_tabled(vector_loop, _Pragma("vector always"));
@@ -161,6 +170,7 @@ namespace aosoa {
 	  def_parallel_indexed_for_each_non_tabled(vector_ivdep_loop, _Pragma("ivdep") _Pragma("vector always"));
 	  def_parallel_indexed_for_each_non_tabled(simd_loop, _Pragma("simd"));
 	  def_parallel_indexed_for_each_non_tabled(novector_loop, _Pragma("novector"));
+#endif
 #endif
 #ifdef __cilk
 	  def_cilk_parallel_indexed_for_each_non_tabled(cilk_loop);
@@ -175,6 +185,7 @@ namespace aosoa {
 	};
   }
 
+#ifndef NOTBB
   template<class C, typename F>
   inline void parallel_indexed_for_each(C& container, const F& f)
   {_parallel_indexed_for_each<C>::loop(container, f);}
@@ -200,7 +211,7 @@ namespace aosoa {
   inline void parallel_novector_indexed_for_each(C& container, const F& f)
   {_parallel_indexed_for_each<C>::novector_loop(container, f);}
 #endif
-
+#endif
 
 #ifdef __cilk
   template<class C, typename F>
@@ -230,7 +241,7 @@ namespace aosoa {
 #endif
 #endif
 
-
+#ifndef NOTBB
 #define def_parallel_indexed_for_each_it_tabled(name, ...)			\
   template<typename F>												\
   static inline void name(T begin, T end, const F& f) {				\
@@ -271,6 +282,7 @@ namespace aosoa {
 		}															\
 	  });															\
   }
+#endif
 
 #ifdef __cilk
 #define def_cilk_parallel_indexed_for_each_it_tabled(name, ...)		\
@@ -312,6 +324,7 @@ namespace aosoa {
   }
 #endif
 
+#ifndef NOTBB
 #define def_parallel_indexed_for_each_it_non_tabled(name, ...)			\
   template<typename F>													\
   static inline void name(T begin, T end, const F& f) {					\
@@ -326,6 +339,7 @@ namespace aosoa {
 			f(it-root, *it);											\
 	  });																\
   }
+#endif
 
 #ifdef __cilk
 #define def_cilk_parallel_indexed_for_each_it_non_tabled(name, ...)		\
@@ -351,6 +365,7 @@ namespace aosoa {
 	private:
 	  typedef table_iterator_traits<T> traits;
 	public:
+#ifndef NOTBB
 	  def_parallel_indexed_for_each_it_tabled(loop);
 #ifdef __ICC
 	  def_parallel_indexed_for_each_it_tabled(vector_loop, _Pragma("vector always"));
@@ -358,6 +373,7 @@ namespace aosoa {
 	  def_parallel_indexed_for_each_it_tabled(vector_ivdep_loop, _Pragma("ivdep") _Pragma("vector always"));
 	  def_parallel_indexed_for_each_it_tabled(simd_loop, _Pragma("simd"));
 	  def_parallel_indexed_for_each_it_tabled(novector_loop, _Pragma("novector"));
+#endif
 #endif
 #ifdef __cilk
 	  def_cilk_parallel_indexed_for_each_it_tabled(cilk_loop);
@@ -374,6 +390,7 @@ namespace aosoa {
 	template<typename T>
 	class _parallel_indexed_for_each_it<T, typename std::enable_if<!table_iterator_traits<T>::tabled>::type> {
 	public:
+#ifndef NOTBB
 	  def_parallel_indexed_for_each_it_non_tabled(loop);
 #ifdef __ICC
 	  def_parallel_indexed_for_each_it_non_tabled(vector_loop, _Pragma("vector always"));
@@ -381,6 +398,7 @@ namespace aosoa {
 	  def_parallel_indexed_for_each_it_non_tabled(vector_ivdep_loop, _Pragma("ivdep") _Pragma("vector always"));
 	  def_parallel_indexed_for_each_it_non_tabled(simd_loop, _Pragma("simd"));
 	  def_parallel_indexed_for_each_it_non_tabled(novector_loop, _Pragma("novector"));
+#endif
 #endif
 #ifdef __cilk
 	  def_cilk_parallel_indexed_for_each_it_non_tabled(cilk_loop);
@@ -395,6 +413,7 @@ namespace aosoa {
 	};
   }
 
+#ifndef NOTBB
   template<typename T, typename F>
   inline void parallel_indexed_for_each(T begin, T end, const F& f)
   {_parallel_indexed_for_each_it<T>::loop(begin, end, f);}
@@ -419,6 +438,7 @@ namespace aosoa {
   template<typename T, typename F>
   inline void parallel_novector_indexed_for_each(T begin, T end, const F& f)
   {_parallel_for_each_it<T>::novector_loop(begin, end, f);}
+#endif
 #endif
 
 #ifdef __cilk
