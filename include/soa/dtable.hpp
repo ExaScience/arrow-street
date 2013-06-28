@@ -353,7 +353,7 @@ namespace soa {
 	typedef dtable_base<typename C::reference::type> super;
 
   public:
-	dtable (size_t n = 0) : n(n), super(n) {}
+	dtable (size_t n = 0) : super(n), n(n) {}
 	void allocate (size_t n) {super::allocate(n);}
 	void deallocate () {super::deallocate();}
 	inline C operator[] (size_t pos) {return C(super::operator[](pos));}

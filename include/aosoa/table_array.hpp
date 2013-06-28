@@ -85,8 +85,8 @@ namespace aosoa  {
 	const_reverse_iterator rend() const { return reverse_iterator(begin()); }
 	const_reverse_iterator crend() const { return reverse_iterator(begin()); }
 
-	constexpr bool empty () const { return N==0; }
-	constexpr size_type size () const { return N; }
+	const bool empty () const { return N==0; }
+	const size_type size () const { return N; }
 	size_type max_size () const { return std::array<soa::table<value_type,1>,1>::max_size(); }
 
 	void fill (const_reference value) {
