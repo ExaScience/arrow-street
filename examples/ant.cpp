@@ -66,15 +66,15 @@ template<typename A> void nested_update(A& a) {
   typedef decltype(a[0]) C;
 
 #ifdef __ICC
-  aosoa::ivdep_for_each(a, [](C& e){
+  aosoa::ivdep_for_each([](C& e){
 	  e.pos.x += e.vel.x;
 	  e.pos.y += e.vel.y;
-	});
+	}, a);
 #else
-  aosoa::for_each(a, [](C& e){
+  aosoa::for_each([](C& e){
 	  e.pos.x += e.vel.x;
 	  e.pos.y += e.vel.y;
-	});
+	}, a);
 #endif
 }
 
@@ -133,16 +133,18 @@ template<typename A> void nested_benchmark (A& array, size_t repeat) {
 
 	float localx = 0, localy = 0;
 
-	aosoa::for_each_range(array, [&](typename soa::table_traits<A>::table_reference t, size_t start, size_t end) {
-		float cx = 0, cy = 0;
+	aosoa::for_each_range([&](size_t start, size_t end,
+							  typename soa::table_traits<A>::table_reference t) {
+							float cx = 0, cy = 0;
 #pragma simd reduction(+:cx,cy)
-		for (size_t i=start; i<end; ++i) {
-		  cx += t[i].pos.x;
-		  cy += t[i].pos.y;
-		}
-		localx += cx;
-		localy += cy;
-	  });
+							for (size_t i=start; i<end; ++i) {
+							  cx += t[i].pos.x;
+							  cy += t[i].pos.y;
+							}
+							localx += cx;
+							localy += cy;
+						  },
+						  array);
 
 	globalx += localx;
 	globaly += localy;

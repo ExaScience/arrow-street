@@ -144,29 +144,29 @@ template<typename A> inline void nested_benchmark (A& array, size_t repeat) {
   for (size_t r = 0; r < repeat; ++r) {
 
 #ifdef __ICC
-	aosoa::ivdep_for_each(array, [](C& e) {
+	aosoa::ivdep_for_each([](C& e) {
 		e.x += e.u * e.p;
 		e.y += e.v * e.q;
-	  });
+	  }, array);
 #else
-	aosoa::for_each(array, [](C& e) {
+	aosoa::for_each([](C& e) {
 		e.x += e.u * e.p;
 		e.y += e.v * e.q;
-	  });
+	  }, array);
 #endif
 
 	float localx = 0, localy = 0;
 
 #ifdef __ICC
-	aosoa::ivdep_for_each(array, [&](C& e) {
+	aosoa::ivdep_for_each([&](C& e) {
 		localx += e.x;
 		localy += e.y;
-	  });
+	  }, array);
 #else
-	aosoa::for_each(array, [&](C& e) {
+	aosoa::for_each([&](C& e) {
 		localx += e.x;
 		localy += e.y;
-	  });
+	  }, array);
 #endif
 
 	globalx += localx;

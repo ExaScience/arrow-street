@@ -4,28 +4,34 @@
 #define AOSOA_FOR_EACH_RANGE
 
 #include <cstddef>
+#include <tuple>
+#include <type_traits>
 
 #include "soa/table_traits.hpp"
+#include "aosoa/apply_tuple.hpp"
 #include "aosoa/table_iterator.hpp"
 
 namespace aosoa {
 
   namespace {
-	template<class C, typename Enable = void> class _for_each_range;
+	template<class C0, typename Enable = void> class _for_each_range;
 
-	template<class C>
-	class _for_each_range<C, typename std::enable_if<soa::table_traits<C>::tabled>::type> {
+	template<class C0>
+	class _for_each_range<C0, typename std::enable_if<soa::table_traits<C0>::tabled>::type> {
 	private:
-	  typedef soa::table_traits<C> traits;
+	  typedef soa::table_traits<C0> traits;
 	public:
-	  template<typename F>
-	  static inline void loop(C& container, const F& f) {
+	  template<typename F, class... C>
+	  static inline void loop(const F& f, C0& container, C&... other_containers) {
 		const auto size = container.size();
-		auto data = container.data();
+		//		auto data = std::make_tuple(container.data(), other_containers.data()...);
 		const auto sdb = size/traits::table_size;
 		const auto smb = size%traits::table_size;
-		for (size_t i=0; i<sdb; ++i) f(data[i], 0, traits::table_size);
-		if (smb) f(data[sdb], 0, smb);
+		for (size_t i=0; i<sdb; ++i)
+		  apply_tuple(f, std::tuple_cat(std::make_tuple(0, traits::table_size), apply_tuple(tuple_access_lvalue<decltype(std::make_tuple(container.data(), other_containers.data()...))>(i), std::make_tuple(container.data(), other_containers.data()...))));
+		//		for (size_t i=0; i<sdb; ++i) f(data[i], 0, traits::table_size);
+		apply_tuple(f, std::tuple_cat(std::make_tuple(0, smb), apply_tuple(tuple_access_lvalue<decltype(std::make_tuple(container.data(), other_containers.data()...))>(sdb), std::make_tuple(container.data(), other_containers.data()...))));
+		//		if (smb) f(data[sdb], 0, smb);
 	  }
 	};
 
@@ -33,15 +39,15 @@ namespace aosoa {
 	class _for_each_range<C, typename std::enable_if<!soa::table_traits<C>::tabled>::type> {
 	public:
 	  template<typename F>
-	  static inline void loop(C& container, const F& f) {
-		f(container.begin(), 0, container.end()-container.begin());
+	  static inline void loop(const F& f, C& container) {
+		f(0, container.end()-container.begin(), container.begin());
 	  }
 	};
   }
 
-  template<class C, typename F>
-  inline void for_each_range(C& container, const F& f)
-  {_for_each_range<C>::loop(container, f);}
+  template<typename F, class C0, class... C>
+  inline void for_each_range(const F& f, C0& container, C&... other_containers)
+  {_for_each_range<C0>::loop(f, container, other_containers...);}
 
   namespace {
 	template<typename T, typename Enable = void> class _for_each_range_it;

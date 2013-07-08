@@ -56,10 +56,10 @@ template<class C> void test(C& container) {
 
   result = 0;
 
-  aosoa::for_each(container, [&result](value_type& value){
+  aosoa::for_each([&result](value_type& value){
 	  value.x += value.y + value.z;
 	  result += value.x;
-	});
+	}, container);
 
   std::cout << result << std::endl;
 
@@ -96,12 +96,13 @@ template<class C> void test(C& container) {
 
   result = 0;
 
-  aosoa::for_each_range(container, [&result](typename soa::table_traits<C>::table_reference table, size_t start, size_t end){
-	  for (size_t i=start; i<end; ++i) {
-		table[i].x += table[i].y + table[i].z;
-		result += table[i].x;
-	  }
-	});
+  aosoa::for_each_range([&result](size_t start, size_t end,
+								  typename soa::table_traits<C>::table_reference table){
+						  for (size_t i=start; i<end; ++i) {
+							table[i].x += table[i].y + table[i].z;
+							result += table[i].x;
+						  }
+						}, container);
 
   std::cout << result << std::endl;
 
