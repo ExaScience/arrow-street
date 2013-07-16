@@ -208,6 +208,24 @@ namespace aosoa {
 	typedef table_type* table_pointer;
 	typedef table_type& table_reference;
   };
+
+  template<typename... T> class are_compatibly_tabled_iterators;
+
+  template<typename T> class are_compatibly_tabled_iterators<T> {
+  public:
+	static constexpr auto value = table_iterator_traits<T>::tabled;
+  };
+
+  template<typename T, typename T0, typename... TN> class are_compatibly_tabled_iterators<T, T0, TN...> {
+  private:
+	typedef table_iterator_traits<T> traits;
+	typedef table_iterator_traits<T0> traits0;
+  public:
+	static constexpr auto value =
+	  traits::tabled && traits0::tabled &&
+	  (traits::table_size == traits0::table_size) &&
+	  are_compatibly_tabled_iterators<T, TN...>::value;
+  };
 }
 
 #endif

@@ -15,106 +15,59 @@
 
 namespace aosoa {
 
-  /*
-#define def_for_each_tabled(name, ...)				  \
-  template<typename F>									 \
-  static inline void name(const F& f, C& container, CN&... other_containers){	\
-	const auto size = container.size();				  \
-	const auto sdb = size/traits::table_size;		  \
-	const auto smb = size%traits::table_size;		  \
-													  \
-	for (size_t i=0; i<sdb; ++i) {					  \
-	  __VA_ARGS__														\
-		for (size_t j=0; j<traits::table_size; ++j) 					\
-		  apply_tuple(f, apply_tuple(tuple_access_value<decltype(apply_tuple(tuple_access_lvalue<decltype(std::make_tuple(container.data(), other_containers.data()...))>(i), std::make_tuple(container.data(), other_containers.data()...)))>(j), apply_tuple(tuple_access_lvalue<decltype(std::make_tuple(container.data(), other_containers.data()...))>(i), std::make_tuple(container.data(), other_containers.data()...)))); \
-	}																	\
-	if (smb) {															\
-	  __VA_ARGS__														\
-		for (size_t j=0; j<smb; ++j)									\
-		  apply_tuple(f, apply_tuple(tuple_access_value<decltype(apply_tuple(tuple_access_lvalue<decltype(std::make_tuple(container.data(), other_containers.data()...))>(sdb), std::make_tuple(container.data(), other_containers.data()...)))>(j), apply_tuple(tuple_access_lvalue<decltype(std::make_tuple(container.data(), other_containers.data()...))>(sdb), std::make_tuple(container.data(), other_containers.data()...)))); \
-	}																	\
-  }
-  */
-
-#define def_for_each_tabled(name, ...)									\
-  template<typename F>													\
-  static inline void name(const F& f, C& container, CN&... other_containers){ \
-	for_each_range([&](size_t start, size_t end,						\
-					   typename soa::table_traits<C>::table_reference table, \
-					   typename soa::table_traits<CN>::table_reference... tablen){ \
-					 __VA_ARGS__										\
-					   for (size_t i=start; i<end; ++i)					\
-						 apply_tuple(f, std::make_tuple(table[i], tablen[i]...)); \
-				   }, container, other_containers...);										\
+#define def_for_each(name, ...)											\
+  template<typename F, class... CN>										\
+  static inline void name(const F& f, C& first, CN&... rest){			\
+	for_each_range														\
+	  ([&f](size_t start, size_t end,									\
+			typename soa::table_traits<C>::table_reference first,		\
+			typename soa::table_traits<CN>::table_reference... rest){	\
+		__VA_ARGS__														\
+		  for (size_t i=start; i<end; ++i)								\
+			apply_tuple(f, std::forward_as_tuple(first[i], rest[i]...));		\
+	  }, first, rest...);												\
   }																		\
 
-#define def_for_each_non_tabled(name, ...)			 \
-  template<typename F>								 \
-  static inline void name(const F& f, C& container){				 \
-	const auto begin = container.begin();			 \
-	const auto end = container.end();				 \
-	__VA_ARGS__										 \
-	  for (auto it=begin; it < end; ++it)			 \
-		f(*it);										 \
-  }
-
-
   namespace {
-	template<class C, typename Enable = void, class... CN> class _for_each;
-
-	template<class C, class... CN>
-	class _for_each<C, typename std::enable_if<soa::table_traits<C>::tabled>::type, CN...> {
+	template<class C> class _for_each {
 	private:
 	  typedef soa::table_traits<C> traits;
 	public:
-	  def_for_each_tabled(loop);
+	  def_for_each(loop);
 #ifdef __ICC
-	  def_for_each_tabled(vector_loop, _Pragma("vector always"));
-	  def_for_each_tabled(ivdep_loop, _Pragma("ivdep"));
-	  def_for_each_tabled(vector_ivdep_loop, _Pragma("ivdep") _Pragma("vector always"));
-	  def_for_each_tabled(simd_loop, _Pragma("simd"));
-	  def_for_each_tabled(novector_loop, _Pragma("novector"));
-#endif
-	};
-
-	template<typename C>
-	class _for_each<C, typename std::enable_if<!soa::table_traits<C>::tabled>::type> {
-	public:
-	  def_for_each_non_tabled(loop);
-#ifdef __ICC
-	  def_for_each_non_tabled(vector_loop, _Pragma("vector always"));
-	  def_for_each_non_tabled(ivdep_loop, _Pragma("ivdep"));
-	  def_for_each_non_tabled(vector_ivdep_loop, _Pragma("ivdep") _Pragma("vector always"));
-	  def_for_each_non_tabled(simd_loop, _Pragma("simd"));
-	  def_for_each_non_tabled(novector_loop, _Pragma("novector"));
+	  def_for_each(vector_loop, _Pragma("vector always"));
+	  def_for_each(ivdep_loop, _Pragma("ivdep"));
+	  def_for_each(vector_ivdep_loop, _Pragma("ivdep") _Pragma("vector always"));
+	  def_for_each(simd_loop, _Pragma("simd"));
+	  def_for_each(novector_loop, _Pragma("novector"));
 #endif
 	};
   }
 
   template<typename F, class C, class... CN>
-  inline void for_each(const F& f, C& container, CN&... other_containers)
-  {_for_each<C>::loop(f, container, other_containers...);}
+  inline void for_each(const F& f, C& first, CN&... rest)
+  {_for_each<C>::loop(f, first, rest...);}
 
 #ifdef __ICC
   template<typename F, class C, class... CN>
-  inline void vector_for_each(const F& f, C& container, CN&... other_containers)
-  {_for_each<C>::vector_loop(f, container, other_containers...);}
+  inline void vector_for_each(const F& f, C& first, CN&... rest)
+  {_for_each<C>::vector_loop(f, first, rest...);}
 
   template<typename F, class C, class... CN>
-  inline void ivdep_for_each(const F& f, C& container, CN&... other_containers)
-  {_for_each<C>::ivdep_loop(f, container, other_containers...);}
+  inline void ivdep_for_each(const F& f, C& first, CN&... rest)
+  {_for_each<C>::ivdep_loop(f, first, rest...);}
 
   template<typename F, class C, class... CN>
-  inline void vector_ivdep_for_each(const F& f, C& container, CN&... other_containers)
-  {_for_each<C>::vector_ivdep_loop(f, container, other_containers...);}
+  inline void vector_ivdep_for_each(const F& f, C& first, CN&... rest)
+  {_for_each<C>::vector_ivdep_loop(f, first, rest...);}
 
   template<typename F, class C, class... CN>
-  inline void simd_for_each(const F& f, C& container, CN&... other_containers)
-  {_for_each<C>::simd_loop(f, container, other_containers...);}
+  inline void simd_for_each(const F& f, C& first, CN&... rest)
+  {_for_each<C>::simd_loop(f, first, rest...);}
 
   template<typename F, class C, class... CN>
-  inline void novector_for_each(const F& f, C& container, CN&... other_containers)
-  {_for_each<C>::novector_loop(f, container, other_containers...);}
+  inline void novector_for_each(const F& f, C& first, CN&... rest)
+  {_for_each<C>::novector_loop(f, first, rest...);}
 #endif
 
 

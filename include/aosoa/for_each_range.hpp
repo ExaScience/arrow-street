@@ -14,80 +14,80 @@
 namespace aosoa {
 
   namespace {
-	template<class C0, typename Enable = void> class _for_each_range;
+	template<class C, typename Enable = void, class... CN> class _for_each_range;
 
-	template<class C0>
-	class _for_each_range<C0, typename std::enable_if<soa::table_traits<C0>::tabled>::type> {
-	private:
-	  typedef soa::table_traits<C0> traits;
+	template<class C, class... CN>
+	class _for_each_range<C, typename std::enable_if<soa::are_compatibly_tabled<C, CN...>::value>::type, CN...> {
 	public:
-	  template<typename F, class... C>
-	  static inline void loop(const F& f, C0& container, C&... other_containers) {
-		const auto size = container.size();
-		//		auto data = std::make_tuple(container.data(), other_containers.data()...);
+	  template<typename F>
+	  static inline void loop(const F& f, C& first, CN&... rest) {
+		typedef soa::table_traits<C> traits;
+		typedef decltype(std::make_tuple(first.data(), rest.data()...)) all;
+		const auto size = first.size();
 		const auto sdb = size/traits::table_size;
 		const auto smb = size%traits::table_size;
 		for (size_t i=0; i<sdb; ++i)
-		  apply_tuple(f, std::tuple_cat(std::make_tuple(0, traits::table_size), apply_tuple(tuple_access_lvalue<decltype(std::make_tuple(container.data(), other_containers.data()...))>(i), std::make_tuple(container.data(), other_containers.data()...))));
-		//		for (size_t i=0; i<sdb; ++i) f(data[i], 0, traits::table_size);
-		apply_tuple(f, std::tuple_cat(std::make_tuple(0, smb), apply_tuple(tuple_access_lvalue<decltype(std::make_tuple(container.data(), other_containers.data()...))>(sdb), std::make_tuple(container.data(), other_containers.data()...))));
-		//		if (smb) f(data[sdb], 0, smb);
+		  apply_tuple(f, std::tuple_cat(std::make_tuple(0, traits::table_size),
+										apply_tuple(tuple_access_lvalue<all>(i),
+													std::make_tuple(first.data(), rest.data()...))));
+		apply_tuple(f, std::tuple_cat(std::make_tuple(0, smb),
+									  apply_tuple(tuple_access_lvalue<all>(sdb),
+												  std::make_tuple(first.data(), rest.data()...))));
 	  }
 	};
 
-	template<class C>
-	class _for_each_range<C, typename std::enable_if<!soa::table_traits<C>::tabled>::type> {
+	template<class C, class... CN>
+	class _for_each_range<C, typename std::enable_if<!soa::are_compatibly_tabled<C, CN...>::value>::type, CN...> {
 	public:
 	  template<typename F>
-	  static inline void loop(const F& f, C& container) {
-		f(0, container.end()-container.begin(), container.begin());
+	  static inline void loop(const F& f, C& first, CN&... rest) {
+		f(0, first.end()-first.begin(), first.begin(), rest.begin()...);
 	  }
 	};
   }
 
-  template<typename F, class C0, class... C>
-  inline void for_each_range(const F& f, C0& container, C&... other_containers)
-  {_for_each_range<C0>::loop(f, container, other_containers...);}
+  template<typename F, class C, class... CN>
+  inline void for_each_range(const F& f, C& first, CN&... rest)
+  {_for_each_range<C, CN...>::loop(f, first, rest...);}
 
   namespace {
-	template<typename T, typename Enable = void> class _for_each_range_it;
+	template<typename T, typename Enable = void, typename... TN> class _for_each_range_it;
 
-	template<typename T>
-	class _for_each_range_it<T, typename std::enable_if<table_iterator_traits<T>::tabled>::type> {
-	private:
-	  typedef table_iterator_traits<T> traits;
+	template<typename T, typename... TN>
+	class _for_each_range_it<T, typename std::enable_if<are_compatibly_tabled_iterators<T, TN...>::value>::type, TN...> {
 	public:
 	  template<typename F>
-	  static inline void loop(T begin, T end, const F& f) {
+	  static inline void loop(T begin, T end, const F& f, TN... others) {
+		typedef table_iterator_traits<T> traits;
 		const auto table0 = begin.table;
 		const auto index0 = begin.index;
 		const auto tablen = end.table;
 		const auto indexn = end.index;
 
 		if (table0 < tablen) {
-		  f(table0[0], index0, traits::table_size);
+		  f(index0, traits::table_size, table0[0], others.table[0]...);
 		  const auto range = tablen-table0;
-		  for (ptrdiff_t i=1; i<range; ++i) f(table0[i], 0, traits::table_size);
-		  f(tablen[0], 0, indexn);
+		  for (ptrdiff_t i=1; i<range; ++i) f(0, traits::table_size, table0[i], others.table[i]...);
+		  f(0, indexn, table0[range], others.table[range]...);
 		} else if (table0 == tablen) {
-		  f(table0[0], index0, indexn);
+		  f(index0, indexn, table0[0], others.table[0]...);
 		}
 	  }
 	};
 
-	template<typename T>
-	class _for_each_range_it<T, typename std::enable_if<!table_iterator_traits<T>::tabled>::type> {
+	template<typename T, typename... TN>
+	class _for_each_range_it<T, typename std::enable_if<!are_compatibly_tabled_iterators<T, TN...>::value>::type, TN...> {
 	public:
 	  template<typename F>
-	  static inline void loop(T begin, T end, const F& f) {
-		f(begin, 0, end-begin);
+	  static inline void loop(T begin, T end, const F& f, TN... others) {
+		f(0, end-begin, begin, others...);
 	  }
 	};
   }
 
-  template<typename T, typename F>
-  inline void for_each_range(T begin, T end, const F& f)
-  {_for_each_range_it<T>::loop(begin, end, f);}
+  template<typename F, typename T, typename... TN>
+  inline void for_each_range(T begin, T end, const F& f, TN... others)
+  {_for_each_range_it<T, TN...>::loop(begin, end, f, others...);}
 }
 
 #endif

@@ -55,14 +55,14 @@ namespace soa {
 	typedef typename std::vector<T>::const_iterator const_table_reference;
   };
 
-  template<class... C> class is_compatible;
+  template<class... C> class are_compatibly_tabled;
 
-  template<class C> class is_compatible<table_traits<C>> {
+  template<class C> class are_compatibly_tabled<C> {
   public:
-	static constexpr auto value = true;
+	static constexpr auto value = table_traits<C>::tabled;
   };
 
-  template<class C, class C0, class... CN> class is_compatible<table_traits<C>, table_traits<C0>, table_traits<CN>...> {
+  template<class C, class C0, class... CN> class are_compatibly_tabled<C, C0, CN...> {
   private:
 	typedef table_traits<C> traits;
 	typedef table_traits<C0> traits0;
@@ -70,7 +70,7 @@ namespace soa {
 	static constexpr auto value =
 	  traits::tabled && traits0::tabled &&
 	  (traits::table_size == traits0::table_size) &&
-	  is_compatible<traits, table_traits<CN>...>::value;
+	  are_compatibly_tabled<C, CN...>::value;
   };
 }
 

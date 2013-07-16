@@ -114,7 +114,7 @@ template<typename A> void nested_benchmark (A& array, size_t repeat) {
 		}
 	  });
 
-	aosoa::for_each_range(array.begin(), array.end(), [&local](typename soa::table_traits<A>::table_reference table, size_t start, size_t end){
+	aosoa::for_each_range(array.begin(), array.end(), [&local](size_t start, size_t end, typename soa::table_traits<A>::table_reference table){
 		float c = 0;
 #pragma simd reduction (+:c)
 		for (size_t i=start; i<end; ++i) {
