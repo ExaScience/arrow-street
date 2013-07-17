@@ -1,5 +1,5 @@
 CXX=icpc
-CXXFLAGS=-std=c++0x -g -ip -ansi-alias -O2 -tbb
+CXXFLAGS=-std=c++0x -gxx-name=g++-4.6 -g -ip -ansi-alias -O2 -tbb
 #CXXFLAGS=-std=c++0x -g -ip -ansi-alias -DNVARIADIC -O2 -tbb
 
 .PHONY: all clean
