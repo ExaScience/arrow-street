@@ -91,11 +91,11 @@ template<typename A> void flat_benchmark(A& array, size_t len, size_t repeat) {
 template<typename A> void nested_benchmark (A& array, size_t repeat) {
   typedef decltype(array[0]) C;
 
-  aosoa::indexed_for_each(array, [](size_t index, C& element){
+  aosoa::indexed_for_each([](size_t index, C& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 
   float global = 0;
 

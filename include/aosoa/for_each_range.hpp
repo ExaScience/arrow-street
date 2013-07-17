@@ -4,11 +4,10 @@
 #define AOSOA_FOR_EACH_RANGE
 
 #include <cstddef>
-#include <tuple>
 #include <type_traits>
 
 #include "soa/table_traits.hpp"
-#include "aosoa/apply_tuple.hpp"
+
 #include "aosoa/table_iterator.hpp"
 
 namespace aosoa {
@@ -17,27 +16,25 @@ namespace aosoa {
 	template<class C, typename Enable = void, class... CN> class _for_each_range;
 
 	template<class C, class... CN>
-	class _for_each_range<C, typename std::enable_if<soa::are_compatibly_tabled<C, CN...>::value>::type, CN...> {
+	class _for_each_range
+	<C, typename std::enable_if<soa::is_compatibly_tabled<C, CN...>::value>::type, CN...> {
 	public:
 	  template<typename F>
 	  static inline void loop(const F& f, C& first, CN&... rest) {
 		typedef soa::table_traits<C> traits;
-		typedef decltype(std::make_tuple(first.data(), rest.data()...)) all;
 		const auto size = first.size();
 		const auto sdb = size/traits::table_size;
 		const auto smb = size%traits::table_size;
 		for (size_t i=0; i<sdb; ++i)
-		  apply_tuple(f, std::tuple_cat(std::make_tuple(0, traits::table_size),
-										apply_tuple(tuple_access_lvalue<all>(i),
-													std::make_tuple(first.data(), rest.data()...))));
-		apply_tuple(f, std::tuple_cat(std::make_tuple(0, smb),
-									  apply_tuple(tuple_access_lvalue<all>(sdb),
-												  std::make_tuple(first.data(), rest.data()...))));
+		  f(0, traits::table_size, first.data()[i], rest.data()[i]...);
+		if (smb)
+		  f(0, smb, first.data()[sdb], rest.data()[sdb]...);
 	  }
 	};
 
 	template<class C, class... CN>
-	class _for_each_range<C, typename std::enable_if<!soa::are_compatibly_tabled<C, CN...>::value>::type, CN...> {
+	class _for_each_range
+	<C, typename std::enable_if<!soa::is_compatibly_tabled<C, CN...>::value>::type, CN...> {
 	public:
 	  template<typename F>
 	  static inline void loop(const F& f, C& first, CN&... rest) {
@@ -48,13 +45,19 @@ namespace aosoa {
 
   template<typename F, class C, class... CN>
   inline void for_each_range(const F& f, C& first, CN&... rest)
-  {_for_each_range<C, CN...>::loop(f, first, rest...);}
+  {
+#ifdef __ICC
+#pragma forceinline recursive
+#endif
+	_for_each_range<C, CN...>::loop(f, first, rest...);
+  }
 
   namespace {
 	template<typename T, typename Enable = void, typename... TN> class _for_each_range_it;
 
 	template<typename T, typename... TN>
-	class _for_each_range_it<T, typename std::enable_if<are_compatibly_tabled_iterators<T, TN...>::value>::type, TN...> {
+	class _for_each_range_it
+	<T, typename std::enable_if<is_compatibly_tabled_iterator<T, TN...>::value>::type, TN...> {
 	public:
 	  template<typename F>
 	  static inline void loop(T begin, T end, const F& f, TN... others) {
@@ -67,7 +70,8 @@ namespace aosoa {
 		if (table0 < tablen) {
 		  f(index0, traits::table_size, table0[0], others.table[0]...);
 		  const auto range = tablen-table0;
-		  for (ptrdiff_t i=1; i<range; ++i) f(0, traits::table_size, table0[i], others.table[i]...);
+		  for (ptrdiff_t i=1; i<range; ++i)
+			f(0, traits::table_size, table0[i], others.table[i]...);
 		  f(0, indexn, table0[range], others.table[range]...);
 		} else if (table0 == tablen) {
 		  f(index0, indexn, table0[0], others.table[0]...);
@@ -76,7 +80,8 @@ namespace aosoa {
 	};
 
 	template<typename T, typename... TN>
-	class _for_each_range_it<T, typename std::enable_if<!are_compatibly_tabled_iterators<T, TN...>::value>::type, TN...> {
+	class _for_each_range_it
+	<T, typename std::enable_if<!is_compatibly_tabled_iterator<T, TN...>::value>::type, TN...> {
 	public:
 	  template<typename F>
 	  static inline void loop(T begin, T end, const F& f, TN... others) {
@@ -85,9 +90,14 @@ namespace aosoa {
 	};
   }
 
-  template<typename F, typename T, typename... TN>
+  template<typename T, typename F, typename... TN>
   inline void for_each_range(T begin, T end, const F& f, TN... others)
-  {_for_each_range_it<T, TN...>::loop(begin, end, f, others...);}
+  {
+#ifdef __ICC
+#pragma forceinline recursive
+#endif
+	_for_each_range_it<T, TN...>::loop(begin, end, f, others...);
+  }
 }
 
 #endif

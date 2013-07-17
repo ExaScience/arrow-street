@@ -31,31 +31,6 @@ namespace aosoa {
   inline auto apply_tuple(F&& f, std::tuple<T...>&& t)
 	-> decltype(_apply_tuple<sizeof...(T)>::call(f, t))
   {return _apply_tuple<sizeof...(T)>::call(f, t);}
-
-  template<typename T> class tuple_access_value;
-
-  template<typename... Args> class tuple_access_value<std::tuple<Args...>> {
-  private:
-	const size_t i;
-  public:
-	tuple_access_value(size_t i): i(i) {}
-	inline auto operator()(Args&... args)
-	  -> decltype(std::make_tuple(args[i]...))
-	{return std::make_tuple(args[i]...);}
-  };
-
-  template<typename T> class tuple_access_lvalue;
-
-  template<typename... Args> class tuple_access_lvalue<std::tuple<Args...>> {
-  private:
-	const size_t i;
-  public:
-	tuple_access_lvalue(int i): i(i) {}
-	inline auto operator()(Args&... args)
-	  -> decltype(std::tie(args[i]...))
-	{return std::tie(args[i]...);}
-  };
-
 }
 
 #endif

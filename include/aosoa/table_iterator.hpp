@@ -196,6 +196,7 @@ namespace aosoa {
 	static constexpr auto table_size = 1;
 
 	typedef typename traits::value_type value_type;
+	typedef T table_reference;
   };
 
   template<typename T, size_t N> class table_iterator_traits<table_iterator<T,N>> {
@@ -209,14 +210,14 @@ namespace aosoa {
 	typedef table_type& table_reference;
   };
 
-  template<typename... T> class are_compatibly_tabled_iterators;
+  template<typename... T> class is_compatibly_tabled_iterator;
 
-  template<typename T> class are_compatibly_tabled_iterators<T> {
+  template<typename T> class is_compatibly_tabled_iterator<T> {
   public:
 	static constexpr auto value = table_iterator_traits<T>::tabled;
   };
 
-  template<typename T, typename T0, typename... TN> class are_compatibly_tabled_iterators<T, T0, TN...> {
+  template<typename T, typename T0, typename... TN> class is_compatibly_tabled_iterator<T, T0, TN...> {
   private:
 	typedef table_iterator_traits<T> traits;
 	typedef table_iterator_traits<T0> traits0;
@@ -224,7 +225,7 @@ namespace aosoa {
 	static constexpr auto value =
 	  traits::tabled && traits0::tabled &&
 	  (traits::table_size == traits0::table_size) &&
-	  are_compatibly_tabled_iterators<T, TN...>::value;
+	  is_compatibly_tabled_iterator<T, TN...>::value;
   };
 }
 

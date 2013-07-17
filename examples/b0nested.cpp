@@ -73,17 +73,17 @@ void benchmark0 (carray& array, size_t repeat) {
   std::cout << "benchmark 0" << std::endl;
 
 #ifdef __ICC
-  aosoa::ivdep_indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::ivdep_indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #else
-  aosoa::indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #endif
 
   float global = 0;
@@ -116,17 +116,17 @@ void benchmark1 (carray& array, size_t repeat) {
   std::cout << "benchmark 1" << std::endl;
 
 #ifdef __ICC
-  aosoa::ivdep_indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::ivdep_indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #else
-  aosoa::indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #endif
 
   float global = 0;
@@ -157,17 +157,17 @@ void benchmark2 (carray& array, size_t repeat) {
   std::cout << "benchmark 2" << std::endl;
 
 #ifdef __ICC
-  aosoa::ivdep_indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::ivdep_indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #else
-  aosoa::indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #endif
 
   float global = 0;

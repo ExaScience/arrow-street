@@ -48,11 +48,11 @@ template<class C> void test(C& container) {
 
   std::cout << "for each over containers:                ";
 
-  aosoa::indexed_for_each(container, [](size_t index, value_type& value) {
+  aosoa::indexed_for_each([](size_t index, value_type& value) {
 	  value.x = index;
 	  value.y = index;
 	  value.z = index;
-	});
+	}, container);
 
   result = 0;
 
@@ -86,13 +86,15 @@ template<class C> void test(C& container) {
 
   std::cout << "for each range over containers:          ";
 
-  aosoa::indexed_for_each_range(container, [](typename soa::table_traits<C>::table_reference table, size_t start, size_t end, size_t offset) {
+  aosoa::indexed_for_each_range
+	([](size_t start, size_t end, size_t offset,
+		typename soa::table_traits<C>::table_reference table) {
 	  for (size_t i=start; i<end; ++i) {
 		table[i].x = offset+i;
 		table[i].y = offset+i;
 		table[i].z = offset+i;
 	  }
-	});
+	}, container);
 
   result = 0;
 
@@ -133,18 +135,18 @@ template<class C> void test(C& container) {
 
   std::cout << "parallel for each over containers:       ";
 
-  aosoa::parallel_indexed_for_each(container, [](size_t index, value_type& value) {
+  aosoa::parallel_indexed_for_each([](size_t index, value_type& value) {
 	  value.x = index;
 	  value.y = index;
 	  value.z = index;
-	});
+	}, container);
 
   result = 0;
 
-  aosoa::parallel_for_each(container, [&result](value_type& value){
+  aosoa::parallel_for_each([&result](value_type& value){
 	  value.x += value.y + value.z;
 	  result += value.x;
-	});
+	}, container);
 
   std::cout << result << std::endl;
 
@@ -171,22 +173,26 @@ template<class C> void test(C& container) {
 
   std::cout << "parallel for each range over containers: ";
 
-  aosoa::parallel_indexed_for_each_range(container, [](typename soa::table_traits<C>::table_reference table, size_t start, size_t end, size_t offset) {
+  aosoa::parallel_indexed_for_each_range
+	([](size_t start, size_t end, size_t offset,
+		typename soa::table_traits<C>::table_reference table) {
 	  for (size_t i=start; i<end; ++i) {
 		table[i].x = offset+i;
 		table[i].y = offset+i;
 		table[i].z = offset+i;
 	  }
-	});
+	}, container);
 
   result = 0;
 
-  aosoa::parallel_for_each_range(container, [&result](typename soa::table_traits<C>::table_reference table, size_t start, size_t end){
+  aosoa::parallel_for_each_range
+	([&result](size_t start, size_t end,
+			   typename soa::table_traits<C>::table_reference table){
 	  for (size_t i=start; i<end; ++i) {
 		table[i].x += table[i].y + table[i].z;
 		result += table[i].x;
 	  }
-	});
+	}, container);
 
   std::cout << result << std::endl;
 
@@ -217,18 +223,18 @@ template<class C> void test(C& container) {
 
   std::cout << "cilk_parallel for each over containers:       ";
 
-  aosoa::cilk_parallel_indexed_for_each(container, [](size_t index, value_type& value) {
+  aosoa::cilk_parallel_indexed_for_each([](size_t index, value_type& value) {
 	  value.x = index;
 	  value.y = index;
 	  value.z = index;
-	});
+	}, container);
 
   result = 0;
 
-  aosoa::cilk_parallel_for_each(container, [&result](value_type& value){
+  aosoa::cilk_parallel_for_each([&result](value_type& value){
 	  value.x += value.y + value.z;
 	  result += value.x;
-	});
+	}, container);
 
   std::cout << result << std::endl;
 
@@ -255,22 +261,26 @@ template<class C> void test(C& container) {
 
   std::cout << "cilk_parallel for each range over containers: ";
 
-  aosoa::cilk_parallel_indexed_for_each_range(container, [](typename soa::table_traits<C>::table_reference table, size_t start, size_t end, size_t offset) {
+  aosoa::cilk_parallel_indexed_for_each_range
+	([](size_t start, size_t end, size_t offset,
+		typename soa::table_traits<C>::table_reference table) {
 	  for (size_t i=start; i<end; ++i) {
 		table[i].x = offset+i;
 		table[i].y = offset+i;
 		table[i].z = offset+i;
 	  }
-	});
+	}, container);
 
   result = 0;
 
-  aosoa::cilk_parallel_for_each_range(container, [&result](typename soa::table_traits<C>::table_reference table, size_t start, size_t end){
+  aosoa::cilk_parallel_for_each_range
+	([&result](size_t start, size_t end,
+			   typename soa::table_traits<C>::table_reference table){
 	  for (size_t i=start; i<end; ++i) {
 		table[i].x += table[i].y + table[i].z;
 		result += table[i].x;
 	  }
-	});
+	}, container);
 
   std::cout << result << std::endl;
 

@@ -92,11 +92,11 @@ template<typename A> void flat_benchmark(A& array, size_t len, size_t repeat) {
 template<typename A> void nested_benchmark (A& array, size_t repeat) {
   typedef decltype(array[0]) C;
 
-  aosoa::parallel_indexed_for_each(array, [](size_t i, C& element){
+  aosoa::parallel_indexed_for_each([](size_t i, C& element){
 	  element.x = i;
 	  element.y = i;
 	  element.z = i;
-	});
+	}, array);
 
   float global = 0;
 
@@ -106,22 +106,25 @@ template<typename A> void nested_benchmark (A& array, size_t repeat) {
 
 	float local = 0;
 
-	aosoa::parallel_for_each_range(array, [&local](typename soa::table_traits<A>::table_reference table, size_t start, size_t end){
+	aosoa::parallel_for_each_range
+	  ([&local](size_t start, size_t end,
+				typename soa::table_traits<A>::table_reference table){
 #pragma simd
 		for (size_t i=start; i<end; ++i) {
 		  table[i].x += table[i].y * table[i].z;
 		}
-	  });
+	  }, array);
 
-	aosoa::for_each_range([&local](size_t start, size_t end,
-								   typename soa::table_traits<A>::table_reference table){
-							float c = 0;
+	aosoa::for_each_range
+	  ([&local](size_t start, size_t end,
+				typename soa::table_traits<A>::table_reference table){
+		float c = 0;
 #pragma simd reduction (+:c)
-							for (size_t i=start; i<end; ++i) {
-							  c += table[i].x;
-							}
-							local += c;
-						  }, array);
+		for (size_t i=start; i<end; ++i) {
+		  c += table[i].x;
+		}
+		local += c;
+	  }, array);
 
 	global += local;
   }
