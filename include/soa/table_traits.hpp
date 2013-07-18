@@ -21,7 +21,7 @@ namespace soa {
 	typedef T value_type;
 	typedef soa::table<value_type,table_size> table_type;
 	typedef table_type& table_reference;
-	typedef const table_reference const_table_reference;
+	typedef const table_type& const_table_reference;
   };
 
   template<typename T> class table_traits<soa::dtable<T>> {
@@ -32,7 +32,7 @@ namespace soa {
 	typedef T value_type;
 	typedef soa::dtable<value_type> table_type;
 	typedef table_type& table_reference;
-	typedef const table_reference const_table_reference;
+	typedef const table_type& const_table_reference;
   };
 
   template<typename T, size_t N> class table_traits<std::array<T,N>> {

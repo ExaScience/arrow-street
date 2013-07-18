@@ -24,19 +24,19 @@ namespace aosoa  {
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef value_type& reference;
-	typedef const reference const_reference;
+	typedef const value_type& const_reference;
 	typedef value_type* pointer;
-	typedef const pointer const_pointer;
+	typedef const value_type* const_pointer;
 	typedef table_iterator<value_type,table_size> iterator;
-	typedef const iterator const_iterator;
+	typedef const table_iterator<value_type,table_size> const_iterator;
 	typedef std::reverse_iterator<iterator> reverse_iterator;
 	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
 	typedef soa::table<value_type,table_size> table_type;
 	typedef table_type& table_reference;
-	typedef const table_reference const_table_reference;
+	typedef const table_type& const_table_reference;
 	typedef table_type* table_pointer;
-	typedef const table_pointer const_table_pointer;
+	typedef const table_type* const_table_pointer;
 
   private:
 	table_type tables[N/table_size+(N%table_size?1:0)];
