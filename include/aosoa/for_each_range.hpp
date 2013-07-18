@@ -13,11 +13,10 @@
 namespace aosoa {
 
   namespace {
-	template<class C, typename Enable = void, class... CN> class _for_each_range;
+	template<bool is_compatibly_tabled, class C, class... CN> class _for_each_range;
 
 	template<class C, class... CN>
-	class _for_each_range
-	<C, typename std::enable_if<soa::is_compatibly_tabled<C, CN...>::value>::type, CN...> {
+	class _for_each_range<true, C, CN...> {
 	public:
 	  template<typename F>
 	  static inline void loop(const F& f, C& first, CN&... rest) {
@@ -33,8 +32,7 @@ namespace aosoa {
 	};
 
 	template<class C, class... CN>
-	class _for_each_range
-	<C, typename std::enable_if<!soa::is_compatibly_tabled<C, CN...>::value>::type, CN...> {
+	class _for_each_range<false, C, CN...> {
 	public:
 	  template<typename F>
 	  static inline void loop(const F& f, C& first, CN&... rest) {
@@ -49,15 +47,15 @@ namespace aosoa {
 #ifdef __ICC
 #pragma forceinline recursive
 #endif
-	_for_each_range<C, CN...>::loop(f, first, rest...);
+	_for_each_range<soa::is_compatibly_tabled<C, CN...>::value, C, CN...>::
+	  loop(f, first, rest...);
   }
 
   namespace {
-	template<typename T, typename Enable = void, typename... TN> class _for_each_range_it;
+	template<bool is_compatibly_tabled, typename T, typename... TN> class _for_each_range_it;
 
 	template<typename T, typename... TN>
-	class _for_each_range_it
-	<T, typename std::enable_if<is_compatibly_tabled_iterator<T, TN...>::value>::type, TN...> {
+	class _for_each_range_it<true, T, TN...> {
 	public:
 	  template<typename F>
 	  static inline void loop(T begin, T end, const F& f, TN... others) {
@@ -80,8 +78,7 @@ namespace aosoa {
 	};
 
 	template<typename T, typename... TN>
-	class _for_each_range_it
-	<T, typename std::enable_if<!is_compatibly_tabled_iterator<T, TN...>::value>::type, TN...> {
+	class _for_each_range_it<false, T, TN...> {
 	public:
 	  template<typename F>
 	  static inline void loop(T begin, T end, const F& f, TN... others) {
@@ -96,7 +93,8 @@ namespace aosoa {
 #ifdef __ICC
 #pragma forceinline recursive
 #endif
-	_for_each_range_it<T, TN...>::loop(begin, end, f, others...);
+	_for_each_range_it<is_compatibly_tabled_iterator<T, TN...>::value, T, TN...>::
+	  loop(begin, end, f, others...);
   }
 }
 

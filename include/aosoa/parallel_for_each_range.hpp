@@ -26,11 +26,10 @@
 namespace aosoa {
 
   namespace {
-	template<class C, typename Enable = void, class... CN> class _parallel_for_each_range;
+	template<bool is_compatibly_tabled, class C, class... CN> class _parallel_for_each_range;
 
 	template<class C, class... CN>
-	class _parallel_for_each_range
-	<C, typename std::enable_if<soa::is_compatibly_tabled<C, CN...>::value>::type, CN...> {
+	class _parallel_for_each_range<true, C, CN...> {
 	public:
 #ifndef NOTBB
 	  template<typename F>
@@ -74,8 +73,7 @@ namespace aosoa {
 	};
 
 	template<class C, class... CN>
-	class _parallel_for_each_range
-	<C, typename std::enable_if<!soa::is_compatibly_tabled<C, CN...>::value>::type, CN...> {
+	class _parallel_for_each_range<false, C, CN...> {
 	public:
 #ifndef NOTBB
 	  template<typename F>
@@ -114,7 +112,8 @@ namespace aosoa {
 #ifdef __ICC
 #pragma forceinline recursive
 #endif
-	_parallel_for_each_range<C, CN...>::loop(f, first, rest...);
+	_parallel_for_each_range<soa::is_compatibly_tabled<C, CN...>::value, C, CN...>::
+	  loop(f, first, rest...);
   }
 #endif
 
@@ -125,16 +124,16 @@ namespace aosoa {
 #ifdef __ICC
 #pragma forceinline recursive
 #endif
-	_parallel_for_each_range<C, CN...>::cilk_loop(f, first, rest...);
+	_parallel_for_each_range<soa::is_compatibly_tabled<C, CN...>::value, C, CN...>::
+	  cilk_loop(f, first, rest...);
   }
 #endif
 
   namespace {
-	template<typename T, typename Enable = void, typename... TN> class _parallel_for_each_range_it;
+	template<bool is_compatibly_tabled, typename T, typename... TN> class _parallel_for_each_range_it;
 
 	template<typename T, typename... TN>
-	class _parallel_for_each_range_it
-	<T, typename std::enable_if<is_compatibly_tabled_iterator<T, TN...>::value>::type, TN...> {
+	class _parallel_for_each_range_it<true, T, TN...> {
 	public:
 #ifndef NOTBB
 	  template<typename F>
@@ -142,20 +141,22 @@ namespace aosoa {
 		typedef table_iterator_traits<T> traits;
 		tbb::parallel_for
 		  (table_range<T>(begin, end),
-		   [&f, others...](const table_range<T>& r) {
+		   [&f, begin, others...](const table_range<T>& r) {
 			const auto table0 = r.begin().table;
 			const auto index0 = r.begin().index;
 			const auto tablen = r.end().table;
 			const auto indexn = r.end().index;
 
+			auto offset = table0 - begin.table;
+
 			if (table0 < tablen) {
-			  f(index0, traits::table_size, table0[0], others.table[0]...);
+			  f(index0, traits::table_size, table0[0], others.table[offset]...);
 			  const auto range = tablen-table0;
 			  for (ptrdiff_t i=1; i<range; ++i)
-				f(0, traits::table_size, table0[i], others.table[i]...);
-			  f(0, indexn, table0[range], others.table[range]...);
+				f(0, traits::table_size, table0[i], others.table[offset+i]...);
+			  f(0, indexn, table0[range], others.table[offset+range]...);
 			} else if (table0 == tablen) {
-			  f(index0, indexn, table0[0], others.table[0]...);
+			  f(index0, indexn, table0[0], others.table[offset]...);
 			}
 		  });
 	  }
@@ -184,8 +185,7 @@ namespace aosoa {
 	};
 
 	template<typename T, typename... TN>
-	class _parallel_for_each_range_it
-	<T, typename std::enable_if<!is_compatibly_tabled_iterator<T, TN...>::value>::type, TN...> {
+	class _parallel_for_each_range_it<false, T, TN...> {
 	public:
 #ifndef NOTBB
 	  template<typename F>
@@ -221,7 +221,8 @@ namespace aosoa {
 #ifdef __ICC
 #pragma forceinline recursive
 #endif
-	_parallel_for_each_range_it<T, TN...>::loop(begin, end, f, others...);
+	_parallel_for_each_range_it<is_compatibly_tabled_iterator<T, TN...>::value, T, TN...>::
+	  loop(begin, end, f, others...);
   }
 #endif
 
@@ -232,7 +233,8 @@ namespace aosoa {
 #ifdef __ICC
 #pragma forceinline recursive
 #endif
-	_parallel_for_each_range_it<T, TN...>::loop(begin, end, f, others...);
+	_parallel_for_each_range_it<is_compatibly_tabled_iterator<T, TN...>::value, T, TN...>::
+	  loop(begin, end, f, others...);
   }
 #endif
 }

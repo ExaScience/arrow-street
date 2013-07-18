@@ -14,12 +14,12 @@
 
 namespace aosoa {
 
-#define def_indexed_for_each(name, ...)								\
-  template<typename F, class... CN>									\
-  static inline void name(const F& f, C& first, CN&... rest){		\
-	indexed_for_each_range											\
-	  ([&f](size_t start, size_t end, size_t offset,				\
-			typename soa::table_traits<C>::table_reference first,	\
+#define def_indexed_for_each(name, ...)									\
+  template<typename F, class... CN>										\
+  static inline void name(const F& f, C& first, CN&... rest){			\
+	indexed_for_each_range												\
+	  ([&f](size_t start, size_t end, size_t offset,					\
+			typename soa::table_traits<C>::table_reference first,		\
 			typename soa::table_traits<CN>::table_reference... rest){	\
 		__VA_ARGS__														\
 		  for (size_t i=start; i<end; ++i)								\
