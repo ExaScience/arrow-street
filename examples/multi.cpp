@@ -6,8 +6,7 @@
 #include "aosoa/table_vector.hpp"
 
 #include "aosoa/for_each_range.hpp"
-#include "aosoa/parallel_for_each_range.hpp"
-#include "aosoa/parallel_indexed_for_each.hpp"
+#include "aosoa/indexed_for_each.hpp"
 
 #include <ctime>
 #include <iostream>
@@ -55,11 +54,14 @@ size_t repeat;                 // repeat each benchmark this many times. not con
 // define the benchmark for flat AOS and SOA representations.
 // no special looping constructs needed, just plain indexing.
 
-template<typename A> void flat_benchmark(A& array, size_t len, size_t repeat) {
+template<typename A> void flat_benchmark(A& a0, A& a1, size_t len, size_t repeat) {
   for (size_t i=0; i<len; ++i) {
-	array[i].x = i;
-	array[i].y = i;
-	array[i].z = i;
+	a0[i].x = i;
+	a0[i].y = i;
+	a0[i].z = i;
+	a1[i].x = 2*i;
+	a1[i].y = 2*i;
+	a1[i].z = 2*i;
   }
 
   float global = 0;
@@ -72,8 +74,9 @@ template<typename A> void flat_benchmark(A& array, size_t len, size_t repeat) {
 
 #pragma simd reduction(+:local)
 	for (size_t i=0; i<len; ++i) {
-	  array[i].x += array[i].y * array[i].z;
-	  local += array[i].x;
+	  a0[i].x += a0[i].y * a0[i].z;
+	  a1[i].x += a1[i].y * a1[i].z;
+	  local += a1[i].x - a0[i].x;
 	}
 
 	global += local;
@@ -89,14 +92,17 @@ template<typename A> void flat_benchmark(A& array, size_t len, size_t repeat) {
 // special looping constructs used to hide away details of nested looping on
 // AOSOA representations.
 
-template<typename A> void nested_benchmark (A& array, size_t repeat) {
-  typedef decltype(array[0]) C;
+template<typename A> void nested_benchmark (A& a0, A& a1, size_t repeat) {
+  typedef decltype(a0[0]) C;
 
-  aosoa::parallel_indexed_for_each([](size_t i, C& element){
-	  element.x = i;
-	  element.y = i;
-	  element.z = i;
-	}, array);
+  aosoa::indexed_for_each([](size_t i, C& e0, C& e1){
+	  e0.x = i;
+	  e0.y = i;
+	  e0.z = i;
+	  e1.x = 2*i;
+	  e1.y = 2*i;
+	  e1.z = 2*i;
+	}, a0, a1);
 
   float global = 0;
 
@@ -106,25 +112,18 @@ template<typename A> void nested_benchmark (A& array, size_t repeat) {
 
 	float local = 0;
 
-	aosoa::parallel_for_each_range
-	  ([&local](size_t start, size_t end,
-				typename soa::table_traits<A>::table_reference table){
-#pragma simd
-		for (size_t i=start; i<end; ++i) {
-		  table[i].x += table[i].y * table[i].z;
-		}
-	  }, array);
-
-	aosoa::for_each_range
-	  ([&local](size_t start, size_t end,
-				typename soa::table_traits<A>::table_reference table){
-		float c = 0;
-#pragma simd reduction (+:c)
-		for (size_t i=start; i<end; ++i) {
-		  c += table[i].x;
-		}
-		local += c;
-	  }, array);
+	aosoa::for_each_range([&local](size_t start, size_t end,
+								   typename soa::table_traits<A>::table_reference t0,
+								   typename soa::table_traits<A>::table_reference t1){
+							float c = 0;
+#pragma simd reduction(+:c)
+							for (size_t i=start; i<end; ++i) {
+							  t0[i].x += t0[i].y * t0[i].z;
+							  t1[i].x += t1[i].y * t1[i].z;
+							  c += t1[i].x - t0[i].x;
+							}
+							local += c;
+						  }, a0, a1);
 
 	global += local;
   }
@@ -139,68 +138,68 @@ template<typename A> void nested_benchmark (A& array, size_t repeat) {
 
 void flatAOS() {
   std::cout << "\nflat AOS array\n";
-  C0 array[len];
-  flat_benchmark(array, len, repeat);
+  C0 a0[len], a1[len];
+  flat_benchmark(a0, a1, len, repeat);
 }
 
 void flatSOA() {
   std::cout << "\nflat SOA array\n";
-  soa::table<Cr,len> array;
-  flat_benchmark(array, len, repeat);
+  soa::table<Cr,len> a0, a1;
+  flat_benchmark(a0, a1, len, repeat);
 }
 
 void flatDSOA() {
   std::cout << "\nflat dynamic SOA array\n";
-  soa::dtable<Cr> array(len);
-  flat_benchmark(array, len, repeat);
+  soa::dtable<Cr> a0(len), a1(len);
+  flat_benchmark(a0, a1, len, repeat);
 }
 
 void stdAOS() {
   std::cout << "\nstd::array\n";
-  std::array<C0,len> array;
-  nested_benchmark(array, repeat);
+  std::array<C0,len> a0, a1;
+  nested_benchmark(a0, a1, repeat);
 }
 
 void nestedSOA1() {
   std::cout << "\nnested SOA array, blocksize 1 (should be same as std::array)\n";
-  aosoa::table_array<Cr,1,len> array;
-  nested_benchmark(array, repeat);
+  aosoa::table_array<Cr,1,len> a0, a1;
+  nested_benchmark(a0, a1, repeat);
 }
 
 void nestedSOAN() {
   std::cout << "\nnested SOA array, blocksize max (should be same as flat SOA array)\n";
-  aosoa::table_array<Cr,len,len> array;
-  nested_benchmark(array, repeat);
+  aosoa::table_array<Cr,len,len> a0, a1;
+  nested_benchmark(a0, a1, repeat);
 }
 
 void nestedSOAB() {
   std::cout << "\nnested SOA array, blocksize " << blocksize << std::endl;
-  aosoa::table_array<Cr,blocksize,len> array;
-  nested_benchmark(array, repeat);
+  aosoa::table_array<Cr,blocksize,len> a0, a1;
+  nested_benchmark(a0, a1, repeat);
 }
 
 void stdVOS() {
   std::cout << "\nstd::vector\n";
-  std::vector<C0> array(len);
-  nested_benchmark(array, repeat);
+  std::vector<C0> a0(len), a1(len);
+  nested_benchmark(a0, a1, repeat);
 }
 
 void nestedSOV1() {
   std::cout << "\nnested SOA vector, blocksize 1 (should be same as std::vector)\n";
-  aosoa::table_vector<Cr,1> array(len);
-  nested_benchmark(array, repeat);
+  aosoa::table_vector<Cr,1> a0(len), a1(len);
+  nested_benchmark(a0, a1, repeat);
 }
 
 void nestedSOVN() {
   std::cout << "\nnested SOA vector, blocksize max (should be same as flat SOA array)\n";
-  aosoa::table_vector<Cr,len> array(len);
-  nested_benchmark(array, repeat);
+  aosoa::table_vector<Cr,len> a0(len), a1(len);
+  nested_benchmark(a0, a1, repeat);
 }
 
 void nestedSOVB() {
   std::cout << "\nnested SOA vector, blocksize " << blocksize << std::endl;
-  aosoa::table_vector<Cr,blocksize> array(len);
-  nested_benchmark(array, repeat);
+  aosoa::table_vector<Cr,blocksize> a0(len), a1(len);
+  nested_benchmark(a0, a1, repeat);
 }
 
 

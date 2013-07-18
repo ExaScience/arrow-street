@@ -6,7 +6,7 @@ CXXFLAGS=-std=c++11 -gxx-name=g++-4.6 -g -ip -ansi-alias -O2 -tbb
 
 .PHONY: all clean
 
-all: test1 test2 ant members inheritance nested b0nested ptest1 ittest1 multi
+all: utests utestsn
 
 clean:
-	rm test1 test2 ant members inheritance nested b0nested ptest1 ittest1 multi
+	rm utests utestsn

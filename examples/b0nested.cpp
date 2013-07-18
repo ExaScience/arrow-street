@@ -73,17 +73,17 @@ void benchmark0 (carray& array, size_t repeat) {
   std::cout << "benchmark 0" << std::endl;
 
 #ifdef __ICC
-  aosoa::ivdep_indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::ivdep_indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #else
-  aosoa::indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #endif
 
   float global = 0;
@@ -94,13 +94,14 @@ void benchmark0 (carray& array, size_t repeat) {
 
 	float local = 0;
 
-	aosoa::for_each_range(array, [&local](typename soa::table_traits<carray>::table_reference table, size_t start, size_t end){
+	aosoa::for_each_range([&local](size_t start, size_t end,
+								   typename soa::table_traits<carray>::table_reference table){
 #pragma simd reduction(+:local)
-		for (size_t i=start; i<end; ++i) {
-		  table[i].x += table[i].y * table[i].z;
-		  local += table[i].x;
-		}
-	  });
+							for (size_t i=start; i<end; ++i) {
+							  table[i].x += table[i].y * table[i].z;
+							  local += table[i].x;
+							}
+						  }, array);
 
 	global += local;
   }
@@ -115,17 +116,17 @@ void benchmark1 (carray& array, size_t repeat) {
   std::cout << "benchmark 1" << std::endl;
 
 #ifdef __ICC
-  aosoa::ivdep_indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::ivdep_indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #else
-  aosoa::indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #endif
 
   float global = 0;
@@ -134,15 +135,16 @@ void benchmark1 (carray& array, size_t repeat) {
 
   for (size_t r = 0; r < repeat; ++r) {
 
-	aosoa::for_each_range(array, [&global](typename soa::table_traits<carray>::table_reference table, size_t start, size_t end){
-		float local = 0;
+	aosoa::for_each_range([&global](size_t start, size_t end,
+									typename soa::table_traits<carray>::table_reference table){
+							float local = 0;
 #pragma simd reduction(+:local)
-		for (size_t i=start; i<end; ++i) {
-		  table[i].x += table[i].y * table[i].z;
-		  local += table[i].x;
-		}
-		global += local;
-	  });
+							for (size_t i=start; i<end; ++i) {
+							  table[i].x += table[i].y * table[i].z;
+							  local += table[i].x;
+							}
+							global += local;
+						  }, array);
   }
 
   auto end = std::time(0);
@@ -155,17 +157,17 @@ void benchmark2 (carray& array, size_t repeat) {
   std::cout << "benchmark 2" << std::endl;
 
 #ifdef __ICC
-  aosoa::ivdep_indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::ivdep_indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #else
-  aosoa::indexed_for_each(array, [](size_t index, Cr& element){
+  aosoa::indexed_for_each([](size_t index, Cr& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 #endif
 
   float global = 0;
@@ -176,15 +178,16 @@ void benchmark2 (carray& array, size_t repeat) {
 
 	float local = 0;
 
-	aosoa::for_each_range(array, [&local](typename soa::table_traits<carray>::table_reference table, size_t start, size_t end){
-		float c = 0;
+	aosoa::for_each_range([&local](size_t start, size_t end,
+								   typename soa::table_traits<carray>::table_reference table){
+							float c = 0;
 #pragma simd reduction(+:c)
-		for (size_t i=start; i<end; ++i) {
-		  table[i].x += table[i].y * table[i].z;
-		  c += table[i].x;
-		}
-		local += c;
-	  });
+							for (size_t i=start; i<end; ++i) {
+							  table[i].x += table[i].y * table[i].z;
+							  c += table[i].x;
+							}
+							local += c;
+						  }, array);
 
 
 	global += local;

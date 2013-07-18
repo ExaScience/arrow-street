@@ -118,23 +118,23 @@ template<typename A> inline void nested_benchmark (A& array, size_t repeat) {
   typedef decltype(array[0]) C;
 
 #ifdef __ICC
-  aosoa::ivdep_indexed_for_each(array, [](size_t i, C& e){
+  aosoa::ivdep_indexed_for_each([](size_t i, C& e){
 	  e.x = i;
 	  e.y = i+1;
 	  e.u = i+2;
 	  e.v = i+3;
 	  e.p = i+4;
 	  e.q = i+5;
-	});
+	}, array);
 #else
-  aosoa::indexed_for_each(array, [](size_t i, C& e){
+  aosoa::indexed_for_each([](size_t i, C& e){
 	  e.x = i;
 	  e.y = i+1;
 	  e.u = i+2;
 	  e.v = i+3;
 	  e.p = i+4;
 	  e.q = i+5;
-	});
+	}, array);
 #endif
 
   float globalx = 0, globaly = 0;
@@ -144,29 +144,29 @@ template<typename A> inline void nested_benchmark (A& array, size_t repeat) {
   for (size_t r = 0; r < repeat; ++r) {
 
 #ifdef __ICC
-	aosoa::ivdep_for_each(array, [](C& e) {
+	aosoa::ivdep_for_each([](C& e) {
 		e.x += e.u * e.p;
 		e.y += e.v * e.q;
-	  });
+	  }, array);
 #else
-	aosoa::for_each(array, [](C& e) {
+	aosoa::for_each([](C& e) {
 		e.x += e.u * e.p;
 		e.y += e.v * e.q;
-	  });
+	  }, array);
 #endif
 
 	float localx = 0, localy = 0;
 
 #ifdef __ICC
-	aosoa::ivdep_for_each(array, [&](C& e) {
+	aosoa::ivdep_for_each([&](C& e) {
 		localx += e.x;
 		localy += e.y;
-	  });
+	  }, array);
 #else
-	aosoa::for_each(array, [&](C& e) {
+	aosoa::for_each([&](C& e) {
 		localx += e.x;
 		localy += e.y;
-	  });
+	  }, array);
 #endif
 
 	globalx += localx;

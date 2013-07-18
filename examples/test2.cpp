@@ -91,11 +91,11 @@ template<typename A> void flat_benchmark(A& array, size_t len, size_t repeat) {
 template<typename A> void nested_benchmark (A& array, size_t repeat) {
   typedef decltype(array[0]) C;
 
-  aosoa::indexed_for_each(array, [](size_t index, C& element){
+  aosoa::indexed_for_each([](size_t index, C& element){
 	  element.x = index;
 	  element.y = index;
 	  element.z = index;
-	});
+	}, array);
 
   float global = 0;
 
@@ -105,15 +105,17 @@ template<typename A> void nested_benchmark (A& array, size_t repeat) {
 
 	float local = 0;
 
-	aosoa::for_each_range(array, [&local](typename soa::table_traits<A>::table_reference table, size_t start, size_t end){
-		float c = 0;
+	aosoa::for_each_range([&local](size_t start, size_t end,
+								   typename soa::table_traits<A>::table_reference table){
+							float c = 0;
 #pragma simd reduction(+:c)
-		for (size_t i=start; i<end; ++i) {
-		  table[i].x += table[i].y * table[i].z;
-		  c += table[i].x;
-		}
-		local += c;
-	  });
+							for (size_t i=start; i<end; ++i) {
+							  table[i].x += table[i].y * table[i].z;
+							  c += table[i].x;
+							}
+							local += c;
+						  },
+						  array);
 
 	global += local;
   }

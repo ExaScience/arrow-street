@@ -55,6 +55,23 @@ namespace soa {
 	typedef typename std::vector<T>::const_iterator const_table_reference;
   };
 
+  template<class... C> class is_compatibly_tabled;
+
+  template<class C> class is_compatibly_tabled<C> {
+  public:
+	static constexpr auto value = table_traits<C>::tabled;
+  };
+
+  template<class C, class C0, class... CN> class is_compatibly_tabled<C, C0, CN...> {
+  private:
+	typedef table_traits<C> traits;
+	typedef table_traits<C0> traits0;
+  public:
+	static constexpr auto value =
+	  traits::tabled && traits0::tabled &&
+	  (traits::table_size == traits0::table_size) &&
+	  is_compatibly_tabled<C, CN...>::value;
+  };
 }
 
 #endif

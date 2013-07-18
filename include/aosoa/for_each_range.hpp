@@ -4,84 +4,98 @@
 #define AOSOA_FOR_EACH_RANGE
 
 #include <cstddef>
+#include <type_traits>
 
 #include "soa/table_traits.hpp"
+
 #include "aosoa/table_iterator.hpp"
 
 namespace aosoa {
 
   namespace {
-	template<class C, typename Enable = void> class _for_each_range;
+	template<bool is_compatibly_tabled, class C, class... CN> class _for_each_range;
 
-	template<class C>
-	class _for_each_range<C, typename std::enable_if<soa::table_traits<C>::tabled>::type> {
-	private:
-	  typedef soa::table_traits<C> traits;
+	template<class C, class... CN>
+	class _for_each_range<true, C, CN...> {
 	public:
 	  template<typename F>
-	  static inline void loop(C& container, const F& f) {
-		const auto size = container.size();
-		auto data = container.data();
+	  static inline void loop(const F& f, C& first, CN&... rest) {
+		typedef soa::table_traits<C> traits;
+		const auto size = first.size();
 		const auto sdb = size/traits::table_size;
 		const auto smb = size%traits::table_size;
-		for (size_t i=0; i<sdb; ++i) f(data[i], 0, traits::table_size);
-		if (smb) f(data[sdb], 0, smb);
+		for (size_t i=0; i<sdb; ++i)
+		  f(0, traits::table_size, first.data()[i], rest.data()[i]...);
+		if (smb)
+		  f(0, smb, first.data()[sdb], rest.data()[sdb]...);
 	  }
 	};
 
-	template<class C>
-	class _for_each_range<C, typename std::enable_if<!soa::table_traits<C>::tabled>::type> {
+	template<class C, class... CN>
+	class _for_each_range<false, C, CN...> {
 	public:
 	  template<typename F>
-	  static inline void loop(C& container, const F& f) {
-		f(container.begin(), 0, container.end()-container.begin());
+	  static inline void loop(const F& f, C& first, CN&... rest) {
+		f(0, first.end()-first.begin(), first.begin(), rest.begin()...);
 	  }
 	};
   }
 
-  template<class C, typename F>
-  inline void for_each_range(C& container, const F& f)
-  {_for_each_range<C>::loop(container, f);}
+  template<typename F, class C, class... CN>
+  inline void for_each_range(const F& f, C& first, CN&... rest)
+  {
+#ifdef __ICC
+#pragma forceinline recursive
+#endif
+	_for_each_range<soa::is_compatibly_tabled<C, CN...>::value, C, CN...>::
+	  loop(f, first, rest...);
+  }
 
   namespace {
-	template<typename T, typename Enable = void> class _for_each_range_it;
+	template<bool is_compatibly_tabled, typename T, typename... TN> class _for_each_range_it;
 
-	template<typename T>
-	class _for_each_range_it<T, typename std::enable_if<table_iterator_traits<T>::tabled>::type> {
-	private:
-	  typedef table_iterator_traits<T> traits;
+	template<typename T, typename... TN>
+	class _for_each_range_it<true, T, TN...> {
 	public:
 	  template<typename F>
-	  static inline void loop(T begin, T end, const F& f) {
+	  static inline void loop(T begin, T end, const F& f, TN... others) {
+		typedef table_iterator_traits<T> traits;
 		const auto table0 = begin.table;
 		const auto index0 = begin.index;
 		const auto tablen = end.table;
 		const auto indexn = end.index;
 
 		if (table0 < tablen) {
-		  f(table0[0], index0, traits::table_size);
+		  f(index0, traits::table_size, table0[0], others.table[0]...);
 		  const auto range = tablen-table0;
-		  for (ptrdiff_t i=1; i<range; ++i) f(table0[i], 0, traits::table_size);
-		  f(tablen[0], 0, indexn);
+		  for (ptrdiff_t i=1; i<range; ++i)
+			f(0, traits::table_size, table0[i], others.table[i]...);
+		  f(0, indexn, table0[range], others.table[range]...);
 		} else if (table0 == tablen) {
-		  f(table0[0], index0, indexn);
+		  f(index0, indexn, table0[0], others.table[0]...);
 		}
 	  }
 	};
 
-	template<typename T>
-	class _for_each_range_it<T, typename std::enable_if<!table_iterator_traits<T>::tabled>::type> {
+	template<typename T, typename... TN>
+	class _for_each_range_it<false, T, TN...> {
 	public:
 	  template<typename F>
-	  static inline void loop(T begin, T end, const F& f) {
-		f(begin, 0, end-begin);
+	  static inline void loop(T begin, T end, const F& f, TN... others) {
+		f(0, end-begin, begin, others...);
 	  }
 	};
   }
 
-  template<typename T, typename F>
-  inline void for_each_range(T begin, T end, const F& f)
-  {_for_each_range_it<T>::loop(begin, end, f);}
+  template<typename T, typename F, typename... TN>
+  inline void for_each_range(T begin, T end, const F& f, TN... others)
+  {
+#ifdef __ICC
+#pragma forceinline recursive
+#endif
+	_for_each_range_it<is_compatibly_tabled_iterator<T, TN...>::value, T, TN...>::
+	  loop(begin, end, f, others...);
+  }
 }
 
 #endif
