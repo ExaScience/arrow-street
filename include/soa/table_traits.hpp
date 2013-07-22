@@ -4,6 +4,7 @@
 #define SOA_TABLE_TRAITS
 
 #include <array>
+#include <cstdint>
 #include <vector>
 
 #include "soa/table.hpp"
