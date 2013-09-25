@@ -1,3 +1,16 @@
+/*
+Copyright (c) 2013, Intel Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+* Neither the name of Intel Corporation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include "soa/reference_type.hpp"
 #include "soa/table.hpp"
 #include "soa/dtable.hpp"
@@ -161,14 +174,14 @@ void stdAOS() {
   nested_benchmark(array, repeat);
 }
 
-void nestedSOA1() {
-  std::cout << "\nnested SOA array, blocksize 1 (should be same as std::array)\n";
-  aosoa::table_array<Cr,1,len> array;
+void nestedSOA2() {
+  std::cout << "\nnested SOA array, blocksize 2\n";
+  aosoa::table_array<Cr,2,len> array;
   nested_benchmark(array, repeat);
 }
 
 void nestedSOAN() {
-  std::cout << "\nnested SOA array, blocksize max (should be same as flat SOA array)\n";
+  std::cout << "\nnested SOA array, blocksize max\n";
   aosoa::table_array<Cr,len,len> array;
   nested_benchmark(array, repeat);
 }
@@ -185,14 +198,14 @@ void stdVOS() {
   nested_benchmark(array, repeat);
 }
 
-void nestedSOV1() {
-  std::cout << "\nnested SOA vector, blocksize 1 (should be same as std::vector)\n";
-  aosoa::table_vector<Cr,1> array(len);
+void nestedSOV2() {
+  std::cout << "\nnested SOA vector, blocksize 2\n";
+  aosoa::table_vector<Cr,2> array(len);
   nested_benchmark(array, repeat);
 }
 
 void nestedSOVN() {
-  std::cout << "\nnested SOA vector, blocksize max (should be same as flat SOA array)\n";
+  std::cout << "\nnested SOA vector, blocksize max\n";
   aosoa::table_vector<Cr,len> array(len);
   nested_benchmark(array, repeat);
 }
@@ -213,12 +226,12 @@ int main() {
   flatDSOA();
 
   stdAOS();
-  nestedSOA1();
+  nestedSOA2();
   nestedSOAN();
   nestedSOAB();
 
   stdVOS();
-  nestedSOV1();
+  nestedSOV2();
   nestedSOVN();
   nestedSOVB();
 }

@@ -1,3 +1,16 @@
+/*
+Copyright (c) 2013, Intel Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+* Neither the name of Intel Corporation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include "soa/reference_type.hpp"
 #include "soa/table.hpp"
 #include "soa/dtable.hpp"
@@ -284,6 +297,8 @@ template<class C> bool test(C& container) {
 
 #endif
 
+#ifdef __cilk
+
   std::cout << "cilk_parallel for each over containers:       ";
 
   aosoa::cilk_parallel_indexed_for_each([](size_t index, value_type& value) {
@@ -399,6 +414,8 @@ template<class C> bool test(C& container) {
 	all_fine = false;
 	std::cout << " NOT OK!\n";
   }
+
+#endif
 
 #endif
 
@@ -562,6 +579,8 @@ bool testmulti(C0& c0, C1& c1, C2& c2) {
 
 #endif
 
+#ifdef __ICC
+
   std::cout << "multi parallel for each over containers:       ";
 
   aosoa::parallel_indexed_for_each([](size_t index, V0& v0, V1& v1, V2& v2) {
@@ -585,6 +604,8 @@ bool testmulti(C0& c0, C1& c1, C2& c2) {
 	all_fine = false;
 	std::cout << " NOT OK!\n";
   }
+
+#endif
 
 #ifndef NO_ITERATORS
 
@@ -617,6 +638,8 @@ bool testmulti(C0& c0, C1& c1, C2& c2) {
   }
 
 #endif
+
+#ifdef __ICC
 
   std::cout << "multi parallel for each range over containers: ";
 
@@ -659,6 +682,8 @@ bool testmulti(C0& c0, C1& c1, C2& c2) {
 	all_fine = false;
 	std::cout << " NOT OK!\n";
   }
+
+#endif
 
 #ifndef NO_ITERATORS
 
@@ -707,6 +732,8 @@ bool testmulti(C0& c0, C1& c1, C2& c2) {
   }
 
 #endif
+
+#ifdef __cilk
 
   std::cout << "multi cilk_parallel for each over containers:       ";
 
@@ -851,6 +878,8 @@ bool testmulti(C0& c0, C1& c1, C2& c2) {
 	all_fine = false;
 	std::cout << " NOT OK!\n";
   }
+
+#endif
 
 #endif
 

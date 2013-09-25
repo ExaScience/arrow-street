@@ -1,0 +1,7 @@
+Please edit soavars.sh to reflect the location of this library, and then make sure that you load soavars.sh.
+
+The library is currently tested with ICC 14.0 and GCC 4.8. For ICC, the headers of GCC 4.6 are needed.
+
+Unfortuantely, there is no documentation available at the moment. Please refer to the examples and unit tests to get an idea how to use this library.
+
+The library can be used to create containers of objects with a "structures of arrays" or "arrays of structures of arrays" memory layout. Such a layout is known to be beneficial for SIMD instructions (like SSE2, AVX, etc.). Currently, we test performance with ICC and see such benefits in many cases. However, there is no guarantee that the compiler of your choice creates efficient code based on the data layout created by this library for your specific applications.

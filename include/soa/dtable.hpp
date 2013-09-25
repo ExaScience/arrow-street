@@ -1,16 +1,23 @@
-/// Copyright (c) 2012, 2013 by Pascal Costanza, Intel Corporation.
+/*
+Copyright (c) 2013, Intel Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+* Neither the name of Intel Corporation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
 #ifndef SOA_DTABLE
 #define SOA_DTABLE
 
-#include <cassert>
 #include <cstddef>
 
 #include <tuple>
 #include <type_traits>
-
-#include <array>
-#include <vector>
 
 namespace soa {
 
@@ -108,10 +115,10 @@ namespace soa {
 
 #else
 
-	template<typename T0, size_t N>
-	class dtable_base<std::tuple<T0>, N> {
+	template<typename T0>
+	class dtable_base<std::tuple<T0>> {
 	private:
-	  typedef std::remove_reference<T0>::type field_type0;
+	  typedef typename std::remove_reference<T0>::type field_type0;
 
 	  field_type0* field0;
 
@@ -141,11 +148,11 @@ namespace soa {
 	  }
 	};
 
-	template<typename T0, typename T1, size_t N>
-	class dtable_base<std::tuple<T0,T1>, N> {
+	template<typename T0, typename T1>
+	class dtable_base<std::tuple<T0,T1>> {
 	private:
-	  typedef std::remove_reference<T0>::type field_type0;
-	  typedef std::remove_reference<T1>::type field_type1;
+	  typedef typename std::remove_reference<T0>::type field_type0;
+	  typedef typename std::remove_reference<T1>::type field_type1;
 
 	  field_type0* field0;
 	  field_type1* field1;
@@ -181,12 +188,12 @@ namespace soa {
 	  }
 	};
 
-	template<typename T0, typename T1, typename T2, size_t N>
-	class dtable_base<std::tuple<T0,T1,T2>, N> {
+	template<typename T0, typename T1, typename T2>
+	class dtable_base<std::tuple<T0,T1,T2>> {
 	private:
-	  typedef std::remove_reference<T0>::type field_type0;
-	  typedef std::remove_reference<T1>::type field_type1;
-	  typedef std::remove_reference<T2>::type field_type2;
+	  typedef typename std::remove_reference<T0>::type field_type0;
+	  typedef typename std::remove_reference<T1>::type field_type1;
+	  typedef typename std::remove_reference<T2>::type field_type2;
 
 	  field_type0* field0;
 	  field_type1* field1;
@@ -228,13 +235,13 @@ namespace soa {
 	  }
 	};
 
-	template<typename T0, typename T1, typename T2, typename T3, size_t N>
-	class dtable_base<std::tuple<T0,T1,T2,T3>, N> {
+	template<typename T0, typename T1, typename T2, typename T3>
+	class dtable_base<std::tuple<T0,T1,T2,T3>> {
 	private:
-	  typedef std::remove_reference<T0>::type field_type0;
-	  typedef std::remove_reference<T1>::type field_type1;
-	  typedef std::remove_reference<T2>::type field_type2;
-	  typedef std::remove_reference<T3>::type field_type3;
+	  typedef typename std::remove_reference<T0>::type field_type0;
+	  typedef typename std::remove_reference<T1>::type field_type1;
+	  typedef typename std::remove_reference<T2>::type field_type2;
+	  typedef typename std::remove_reference<T3>::type field_type3;
 
 	  field_type0* field0;
 	  field_type1* field1;
@@ -257,10 +264,10 @@ namespace soa {
 	  }
 
 	  void allocate (size_t n) {
-		field0 = field_type0[n];
-		field1 = field_type1[n];
-		field2 = field_type2[n];
-		field3 = field_type3[n];
+		field0 = new field_type0[n];
+		field1 = new field_type1[n];
+		field2 = new field_type2[n];
+		field3 = new field_type3[n];
 	  }
 
 	  void deallocate () {
@@ -282,14 +289,14 @@ namespace soa {
 	  }
 	};
 
-	template<typename T0, typename T1, typename T2, typename T3, typename T4, size_t N>
-	class dtable_base<std::tuple<T0,T1,T2,T3,T4>, N> {
+	template<typename T0, typename T1, typename T2, typename T3, typename T4>
+	class dtable_base<std::tuple<T0,T1,T2,T3,T4>> {
 	private:
-	  typedef std::remove_reference<T0>::type field_type0;
-	  typedef std::remove_reference<T1>::type field_type1;
-	  typedef std::remove_reference<T2>::type field_type2;
-	  typedef std::remove_reference<T3>::type field_type3;
-	  typedef std::remove_reference<T4>::type field_type4;
+	  typedef typename std::remove_reference<T0>::type field_type0;
+	  typedef typename std::remove_reference<T1>::type field_type1;
+	  typedef typename std::remove_reference<T2>::type field_type2;
+	  typedef typename std::remove_reference<T3>::type field_type3;
+	  typedef typename std::remove_reference<T4>::type field_type4;
 
 	  field_type0* field0;
 	  field_type1* field1;

@@ -1,4 +1,15 @@
-/// Copyright (c) 2012, 2013 by Pascal Costanza, Intel Corporation.
+/*
+Copyright (c) 2013, Intel Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+* Neither the name of Intel Corporation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
 #ifndef AOSOA_PARALLEL_INDEXED_FOR_EACH_RANGE
 #define AOSOA_PARALLEL_INDEXED_FOR_EACH_RANGE
@@ -32,6 +43,8 @@ namespace aosoa {
 	class _parallel_indexed_for_each_range<true, C, CN...> {
 	public:
 #ifndef NOTBB
+
+#if defined(__ICC) || (GCC_VERSION >= 40900)
 	  template<typename F>
 	  static inline void loop(const F& f, C& first, CN&... rest) {
 		typedef soa::table_traits<C> traits;
@@ -54,6 +67,32 @@ namespace aosoa {
 		  g.wait();
 		} else tbb::parallel_for(range, fun);
 	  }
+#else
+	  // capturing parameter packs is not supported in GCC 4.8.x.
+	  template<typename F>
+	  static inline void loop(const F& f, C& first) {
+		typedef soa::table_traits<C> traits;
+		const auto size = first.size();
+		const auto sdb = size/traits::table_size;
+		const auto smb = size%traits::table_size;
+
+		const tbb::blocked_range<size_t> range(0, sdb);
+
+		auto const fun = [&f, &first](const tbb::blocked_range<size_t>& r) {
+		  for (size_t i=r.begin(); i<r.end(); ++i)
+			f(0, traits::table_size, i*traits::table_size, first.data()[i]);
+		};
+
+		if (smb) {
+		  tbb::task_group g;
+		  g.run([&f,&first,sdb,smb]
+				{f(0, smb, sdb*traits::table_size, first.data()[sdb]);});
+		  tbb::parallel_for(range, fun);
+		  g.wait();
+		} else tbb::parallel_for(range, fun);
+	  }
+#endif
+
 #endif
 
 #ifdef __cilk
@@ -66,8 +105,13 @@ namespace aosoa {
 
 		if (smb)
 		  cilk_spawn f(0, smb, sdb*traits::table_size, first.data()[sdb], rest.data()[sdb]...);
+		/*
 		cilk_for (size_t i=0; i<sdb; ++i)
 		  f(0, traits::table_size, i*traits::table_size, first.data()[i], rest.data()[i]...);
+		*/
+		cilk_iterate((decltype(sdb))0, sdb, [&f, &first, &rest...](decltype(sdb) i){
+			f(0, traits::table_size, i*traits::table_size, first.data()[i], rest.data()[i]...);
+		  });
 	  }
 #endif
 
@@ -77,6 +121,8 @@ namespace aosoa {
 	class _parallel_indexed_for_each_range<false, C, CN...> {
 	public:
 #ifndef NOTBB
+
+#if defined(__ICC) || (GCC_VERSION >= 40900)
 	  template<typename F>
 	  static inline void loop(const F& f, C& first, CN&... rest) {
 		tbb::parallel_for
@@ -87,6 +133,20 @@ namespace aosoa {
 			f(0, r.end()-r.begin(), offset, r.begin(), (rest.begin()+offset)...);
 		  });
 	  }
+#else
+	  // capturing parameter packs is not supported in GCC 4.8.x.
+	  template<typename F>
+	  static inline void loop(const F& f, C& first) {
+		tbb::parallel_for
+		  (tbb::blocked_range<typename C::iterator>
+		   (first.begin(), first.end()),
+		   [&f, &first](const tbb::blocked_range<typename C::iterator>& r){
+			auto offset = r.begin() - first.begin();
+			f(0, r.end()-r.begin(), offset, r.begin());
+		  });
+	  }
+#endif
+
 #endif
 
 #ifdef __cilk
@@ -97,10 +157,18 @@ namespace aosoa {
 		auto span = end-begin;
 		auto grainsize = std::min(2048l, span / (8 * __cilkrts_get_nworkers()));
 		if (grainsize == 0) grainsize = 1;
+		/*
 		cilk_for (auto it=begin; it<end; it+=grainsize) {
 		  auto offset = it - first.begin();
 		  f(0, std::min(grainsize, end-it), offset, it, (rest.begin()+offset)...);
 		}
+		*/
+		cilk_iterate
+		  (begin, end, grainsize,
+		   [&f, &first, &rest...](decltype(begin) lbegin, decltype(end) lend){
+			auto offset = lbegin-first.begin();
+			f(0, lend-lbegin, offset, lbegin, (rest.begin()+offset)...);
+		  });
 	  }
 #endif
 	};
@@ -137,6 +205,8 @@ namespace aosoa {
 	class _parallel_indexed_for_each_range_it<true, T, TN...> {
 	public:
 #ifndef NOTBB
+
+#if defined(__ICC) || (GCC_VERSION >= 40900)
 	  template<typename F>
 	  static inline void loop(T begin, T end, const F& f, TN... others) {
 		tbb::parallel_for
@@ -163,6 +233,36 @@ namespace aosoa {
 			}
 		  });
 	  }
+#else
+	  // capturing parameter packs is not supported in GCC 4.8.x.
+	  template<typename F>
+	  static inline void loop(T begin, T end, const F& f) {
+		tbb::parallel_for
+		  (table_range<T>(begin, end),
+		   [&f, begin](const table_range<T>& r) {
+			const auto table0 = r.begin().table;
+			const auto index0 = r.begin().index;
+			const auto tablen = r.end().table;
+			const auto indexn = r.end().index;
+
+			auto offset = table0 - begin.table;
+
+			typedef table_iterator_traits<T> traits;
+			const auto delta = offset*traits::table_size-index0;
+
+			if (table0 < tablen) {
+			  f(index0, traits::table_size, delta, table0[0]);
+			  const auto range = tablen-table0;
+			  for (ptrdiff_t i=1; i<range; ++i)
+				f(0, traits::table_size, delta+i*traits::table_size, table0[i]);
+			  f(0, indexn, delta+range*traits::table_size, table0[range]);
+			} else if (table0 == tablen) {
+			  f(index0, indexn, delta, table0[0]);
+			}
+		  });
+	  }
+#endif
+
 #endif
 
 #ifdef __cilk
@@ -178,8 +278,13 @@ namespace aosoa {
 		  cilk_spawn f(index0, traits::table_size, -index0, table0[0], others.table[0]...);
 		  const auto range = tablen-table0;
 		  cilk_spawn f(0, indexn, range*traits::table_size-index0, table0[range], others.table[range]...);
+		  /*
 		  cilk_for (ptrdiff_t i=1; i<range; ++i)
 			f(0, traits::table_size, i*traits::table_size-index0, table0[i], others.table[i]...);
+		  */
+		  cilk_iterate((decltype(range))1, range, [&f, &table0, index0, &others...](ptrdiff_t i){
+			  f(0, traits::table_size, i*traits::table_size-index0, table0[i], others.table[i]...);
+			});
 		} else if (table0 == tablen) {
 		  f(index0, indexn, -index0, table0[0], others.table[0]...);
 		}
@@ -191,6 +296,8 @@ namespace aosoa {
 	class _parallel_indexed_for_each_range_it<false, T, TN...> {
 	public:
 #ifndef NOTBB
+
+#if defined(__ICC) || (GCC_VERSION >= 40900)
 	  template<typename F>
 	  static inline void loop(T begin, T end, const F& f, TN... others) {
 		tbb::parallel_for
@@ -200,6 +307,19 @@ namespace aosoa {
 			f(0, r.end()-r.begin(), offset, r.begin(), (others+offset)...);
 		  });
 	  }
+#else
+	  // capturing parameter packs is not supported in GCC 4.8.x.
+	  template<typename F>
+	  static inline void loop(T begin, T end, const F& f) {
+		tbb::parallel_for
+		  (tbb::blocked_range<T>(begin, end),
+		   [&f, begin](const tbb::blocked_range<T>& r){
+			auto offset = r.begin() - begin;
+			f(0, r.end()-r.begin(), offset, r.begin());
+		  });
+	  }
+#endif
+
 #endif
 
 #ifdef __cilk
@@ -208,10 +328,18 @@ namespace aosoa {
 		auto span = end-begin;
 		auto grainsize = std::min(2048l, span / (8 * __cilkrts_get_nworkers()));
 		if (grainsize == 0) grainsize = 1;
+		/*
 		cilk_for (auto it=begin; it<end; it+=grainsize) {
 		  auto offset = it - begin;
 		  f(0, std::min(grainsize, end-it), offset, it, (others+offset)...);
 		}
+		*/
+		cilk_iterate
+		  (begin, end, grainsize,
+		   [&f, begin, others...](decltype(begin) lbegin, decltype(end) lend){
+			auto offset = lbegin - begin;
+			f(0, lend-lbegin, offset, lbegin, (others+offset)...);
+		  });
 	  }
 #endif
 	};
